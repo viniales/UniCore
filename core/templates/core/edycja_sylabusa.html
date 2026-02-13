@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -25,32 +25,19 @@
         .hours-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; }
         .hours-row:last-child { border-bottom: none; }
 
-        /* CZYSTY STYL DLA LISTY CHECKBOXÓW */
+        /* Styl dla checkboxów */
         #id_efekty_kierunkowe { list-style: none; padding: 0; margin: 0; }
         #id_efekty_kierunkowe li { 
             background: #fff; 
             border-bottom: 1px solid #eee; 
             padding: 12px; 
-            display: flex;
-            align-items: start;
+            display: flex; 
+            align-items: flex-start;
         }
         #id_efekty_kierunkowe li:last-child { border-bottom: none; }
         #id_efekty_kierunkowe li:hover { background: #f1f8ff; }
-        
-        #id_efekty_kierunkowe label { 
-            font-weight: normal; 
-            margin: 0; 
-            cursor: pointer; 
-            font-size: 0.95em; 
-            line-height: 1.4;
-            color: #333;
-        }
-        #id_efekty_kierunkowe input[type="checkbox"] { 
-            margin-right: 15px; 
-            margin-top: 4px;
-            transform: scale(1.3); 
-            cursor: pointer;
-        }
+        #id_efekty_kierunkowe label { font-weight: normal; margin: 0; cursor: pointer; font-size: 0.95em; line-height: 1.4; color: #333; }
+        #id_efekty_kierunkowe input[type="checkbox"] { margin-right: 15px; margin-top: 4px; transform: scale(1.3); cursor: pointer; }
     </style>
 </head>
 <body class="pb-5">
@@ -80,151 +67,87 @@
         {% csrf_token %}
 
         <div class="card section-card">
-            <div class="section-header">
-                <span class="section-icon">📝</span> 1. Informacje Podstawowe
-            </div>
+            <div class="section-header"><span class="section-icon">📝</span> 1. Informacje Podstawowe</div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <label>Jzyk wykadowy</label>
-                        {{ form.jezyk_wykladowy }}
-                    </div>
-                </div>
-                <label>Cele ksztacenia</label>
-                {{ form.opis_wstepny }}
-                <label>Wymagania wstpne</label>
-                {{ form.wymagania_wstepne }}
+                <div class="row"><div class="col-md-12"><label>Jzyk wykadowy</label>{{ form.jezyk_wykladowy }}</div></div>
+                <label>Cele ksztacenia</label>{{ form.opis_wstepny }}
+                <label>Wymagania wstpne</label>{{ form.wymagania_wstepne }}
             </div>
         </div>
 
         <div class="card section-card">
-            <div class="section-header">
-                <span class="section-icon">🎯</span> 2. Efekty Uczenia si (Matryca)
-            </div>
+            <div class="section-header"><span class="section-icon">🎯</span> 2. Efekty Uczenia si (Matryca)</div>
             <div class="card-body">
                 <div class="alert alert-primary border-0 d-flex align-items-center">
                     <span class="fs-4 me-3">ℹ️</span>
-                    <div>
-                        <strong>Instrukcja dla Koordynatora:</strong><br>
-                        Poniej znajduje si lista efektów zdefiniowana dla kierunku Informatyka.<br>
-                        Zaznacz te, które s realizowane w ramach Twojego przedmiotu.
-                    </div>
+                    <div><strong>Instrukcja:</strong> Zaznacz efekty z listy poniej (zdefiniowane przez Prodziekana).</div>
                 </div>
-
                 <div class="card mt-3" style="border: 1px solid #cce5ff;">
-                    <div class="card-header bg-light fw-bold text-primary">
-                        Lista Efektów Kierunkowych (Wybierz z listy)
-                    </div>
+                    <div class="card-header bg-light fw-bold text-primary">Lista Efektów Kierunkowych (Wybierz z listy)</div>
                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                         {{ form.efekty_kierunkowe }}
                     </div>
                 </div>
-                
-                <div style="display:none;">
-                    {{ form.efekty_wiedza }}
-                    {{ form.efekty_umiejetnosci }}
-                    {{ form.efekty_kompetencje }}
-                    {{ form.mapowanie_efektow }}
-                </div>
+                <div style="display:none;">{{ form.efekty_wiedza }}{{ form.efekty_umiejetnosci }}{{ form.efekty_kompetencje }}{{ form.mapowanie_efektow }}</div>
             </div>
         </div>
 
         <div class="card section-card border-primary" style="border: 1px solid #cfe2ff;">
-            <div class="section-header bg-primary text-white">
-                <span class="section-icon">⚡</span> 3. Harmonogram (Smart Paste)
-            </div>
+            <div class="section-header bg-primary text-white"><span class="section-icon">⚡</span> 3. Harmonogram (Smart Paste)</div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6">
-                        <label class="mt-0">Wklej list tematów tutaj:</label>
-                        <small class="text-muted d-block mb-2">Kada linia to jeden temat (2h).</small>
-                        {{ form.harmonogram_raw }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="mt-0">Podgld (Aktualnie w bazie):</label>
+                    <div class="col-md-6"><label class="mt-0">Wklej list tematów tutaj:</label>{{ form.harmonogram_raw }}</div>
+                    <div class="col-md-6"><label class="mt-0">Podgld:</label>
                         {% if tematy %}
                         <div class="list-group list-group-flush border rounded mt-2" style="max-height: 250px; overflow-y: auto;">
                             {% for t in tematy %}
-                            <div class="list-group-item py-1 px-2 small">
-                                <span class="fw-bold">{{ t.numer_tematu }}.</span> {{ t.temat }}
-                            </div>
+                            <div class="list-group-item py-1 px-2 small"><span class="fw-bold">{{ t.numer_tematu }}.</span> {{ t.temat }}</div>
                             {% endfor %}
                         </div>
-                        {% else %}
-                        <div class="alert alert-secondary mt-2">Brak tematów. Wklej co po lewej!</div>
-                        {% endif %}
+                        {% else %}<div class="alert alert-secondary mt-2">Brak tematów.</div>{% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="card section-card">
-            <div class="section-header">
-                <span class="section-icon">🕒</span> 4. Obcienie studenta (Praca wasna)
-            </div>
+            <div class="section-header"><span class="section-icon">🕒</span> 4. Obcienie studenta</div>
             <div class="card-body">
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <div class="hours-row"><span>Przygotowanie do wicze:</span> {{ form.pw_przygotowanie_cw }}</div>
-                        <div class="hours-row"><span>Pisanie sprawozda:</span> {{ form.pw_sprawozdania }}</div>
-                        <div class="hours-row"><span>Realizacja projektu:</span> {{ form.pw_projekt }}</div>
-                        <div class="hours-row"><span>Nauka do zaliczenia wykadu:</span> {{ form.pw_wyklad }}</div>
-                        <div class="hours-row"><span>Przygotowanie do egzaminu:</span> {{ form.pw_egzamin }}</div>
-                        <div class="hours-row"><span>Studium literatury:</span> {{ form.pw_literatura }}</div>
-                    </div>
-                </div>
+                <div class="row justify-content-center"><div class="col-md-8">
+                    <div class="hours-row"><span>Przygotowanie do wicze:</span> {{ form.pw_przygotowanie_cw }}</div>
+                    <div class="hours-row"><span>Sprawozdania:</span> {{ form.pw_sprawozdania }}</div>
+                    <div class="hours-row"><span>Projekt:</span> {{ form.pw_projekt }}</div>
+                    <div class="hours-row"><span>Nauka do wykadu:</span> {{ form.pw_wyklad }}</div>
+                    <div class="hours-row"><span>Egzamin:</span> {{ form.pw_egzamin }}</div>
+                    <div class="hours-row"><span>Literatura:</span> {{ form.pw_literatura }}</div>
+                </div></div>
             </div>
         </div>
 
         <div class="card section-card">
-            <div class="section-header">
-                <span class="section-icon">📚</span> 5. Organizacja i Literatura
-            </div>
+            <div class="section-header"><span class="section-icon">📚</span> 5. Organizacja</div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6">
-                        <label>Metody nauczania</label>
-                        {{ form.metody_nauczania }}
-                    </div>
-                    <div class="col-md-6">
-                        <label>Formy oceny (Weryfikacja)</label>
-                        {{ form.formy_oceny }}
-                    </div>
+                    <div class="col-md-6"><label>Metody nauczania</label>{{ form.metody_nauczania }}</div>
+                    <div class="col-md-6"><label>Formy oceny</label>{{ form.formy_oceny }}</div>
                 </div>
-                
-                <label>Zasady ustalania oceny</label>
-                {{ form.zasady_oceniania }}
-                
+                <label>Zasady oceniania</label>{{ form.zasady_oceniania }}
                 <div class="row">
-                    <div class="col-md-6">
-                        <label>Odrabianie zaj</label>
-                        {{ form.odrabianie_zajec }}
-                    </div>
-                    <div class="col-md-6">
-                        <label>Wymagania obecnoci</label>
-                        {{ form.wymagania_obecnosci }}
-                    </div>
+                    <div class="col-md-6"><label>Odrabianie zaj</label>{{ form.odrabianie_zajec }}</div>
+                    <div class="col-md-6"><label>Wymagania obecnoci</label>{{ form.wymagania_obecnosci }}</div>
                 </div>
-
-                <label>Literatura (Podstawowa i Uzupeniajca)</label>
-                {{ form.literatura }}
-                
-                <label>Inne informacje</label>
-                {{ form.inne_informacje }}
+                <label>Literatura</label>{{ form.literatura }}
+                <label>Inne informacje</label>{{ form.inne_informacje }}
             </div>
         </div>
 
         <div class="fixed-bottom bg-white border-top p-3 shadow-lg" style="z-index: 1000;">
             <div class="editor-container d-flex justify-content-between align-items-center">
                 <span class="text-success small fw-bold">✅ Edytor gotowy.</span>
-                <div>
-                    <a href="/" class="btn btn-outline-secondary me-2">Anuluj</a>
-                    <button type="submit" class="btn btn-success btn-lg px-5">💾 ZAPISZ DOKUMENT</button>
-                </div>
+                <div><a href="/" class="btn btn-outline-secondary me-2">Anuluj</a><button type="submit" class="btn btn-success btn-lg px-5">💾 ZAPISZ DOKUMENT</button></div>
             </div>
         </div>
         <div style="height: 100px;"></div> 
-
     </form>
 </div>
 </body>

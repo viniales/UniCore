@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Koordynatora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold">🎓 Twoje Przedmioty</h1>
+            <p class="text-muted">Panel zarzdzania sylabusami</p>
+        </div>
+        <button class="btn btn-primary">➕ Dodaj nowy (Opcja)</button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="vertical-align: middle;">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Kod</th>
+                        <th>Nazwa Przedmiotu</th>
+                        <th>ECTS</th>
+                        <th>Status</th>
+                        <th>Akcja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in przedmioty %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-primary">{{ p.kod_przedmiotu }}</td>
+                        <td>
+                            <div class="fw-bold">{{ p.nazwa_pl }}</div>
+                            <small class="text-muted">{{ p.nazwa_en }}</small>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ p.ects }} ECTS</span></td>
+                        <td>
+                            {% if p.efekty_kierunkowe.exists %}
+                                <span class="badge bg-success">Wypeniony</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Do uzupenienia</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/edycja/{{ p.id }}/" class="btn btn-sm btn-outline-primary px-3">
+                                ✏️ Edytuj
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            Brak przedmiotów w bazie. <br>
+                            (Musisz doda je przez Panel Admina lub stworzy skryptem).
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

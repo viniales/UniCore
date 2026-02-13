@@ -1,4 +1,7 @@
-from django.shortcuts import render, get_object_or_404, redirect
+﻿import os
+
+# 1. POPRAWNY VIEWS.PY (Upewniamy sie ze renderuje poprawnie)
+views_content = """from django.shortcuts import render, get_object_or_404, redirect
 from .models import Przedmiot, SzczegolySylabusa, TrescZajec
 from .forms import SylabusForm
 
@@ -20,7 +23,7 @@ def edycja_sylabusa(request, przedmiot_id):
             raw_text = form.cleaned_data.get('harmonogram_raw')
             if raw_text:
                 TrescZajec.objects.filter(przedmiot=przedmiot).delete()
-                lines = raw_text.strip().split('\n')
+                lines = raw_text.strip().split('\\n')
                 for i, line in enumerate(lines, 1):
                     if line.strip():
                         TrescZajec.objects.create(przedmiot=przedmiot, numer_tematu=i, temat=line.strip(), liczba_godzin=2)
@@ -36,3 +39,21 @@ def edycja_sylabusa(request, przedmiot_id):
 def lista_przedmiotow(request):
     przedmioty = Przedmiot.objects.all()
     return render(request, 'core/lista.html', {'przedmioty': przedmioty})
+"""
+
+# 2. POPRAWNY URLS.PY (Bez nawiasow przy funkcjach)
+urls_content = """from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.lista_przedmiotow, name='lista_przedmiotow'),
+    path('edycja/<int:przedmiot_id>/', views.edycja_sylabusa, name='edycja_sylabusa'),
+]
+"""
+
+# ZAPISUJEMY PLIKI
+base = os.getcwd()
+with open(os.path.join(base, 'core', 'views.py'), 'w', encoding='utf-8') as f: f.write(views_content)
+with open(os.path.join(base, 'core', 'urls.py'), 'w', encoding='utf-8') as f: f.write(urls_content)
+
+print("✅ NAPRAWIONE: views.py i urls.py s teraz poprawne.")
