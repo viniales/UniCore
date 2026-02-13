@@ -1,161 +1,210 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Sylabus: {{ przedmiot.nazwa_pl }}</title>
     <style>
-        body { font-family: "Times New Roman", serif; font-size: 11pt; padding: 40px; max-width: 900px; margin: auto; color: #000; }
-        .no-print { text-align: right; margin-bottom: 20px; }
-        
-        h1 { font-size: 14pt; text-align: left; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .header-table td { padding: 4px; vertical-align: top; }
-        
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; page-break-inside: avoid; }
-        th, td { border: 1px solid black; padding: 6px; text-align: left; vertical-align: top; }
-        th { background-color: #f0f0f0; font-weight: bold; text-align: center; }
-        
-        .section-header { font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
-        .center { text-align: center; }
-        
-        @media print {
-            .no-print { display: none; }
-            body { padding: 0; }
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @bottom-center {
+                content: counter(page);
+                font-size: 10pt;
+            }
         }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.3;
+        }
+        .header-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            table-layout: fixed; /* To trzyma tabelę w ryzach */
+        }
+        td, th {
+            border: 1px solid black;
+            padding: 4px;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
+        .gray { background-color: #f0f0f0; font-weight: bold; }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .right { text-align: right; }
+
+        .box {
+            border: 1px solid black;
+            padding: 5px;
+            min-height: 40px;
+            margin-bottom: 15px;
+        }
+        .section-header { font-weight: bold; margin-top: 10px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="no-print">
-        <button onclick="window.print()" style="padding: 10px 20px; font-weight: bold; cursor: pointer;">🖨️ DRUKUJ (ZAPISZ JAKO PDF)</button>
-        <a href="/" style="margin-left: 15px; text-decoration: none; color: blue;">Powrót</a>
-    </div>
+    <div class="header-title">SYLABUS DO PRZEDMIOTU</div>
 
-    <h1>SYLABUS DO PRZEDMIOTU</h1>
-    
-    <table class="header-table" style="border: none;">
-        <tr><td style="width: 40%"><strong>Cykl dydaktyczny</strong></td><td>{{ przedmiot.cykl_dydaktyczny }}</td></tr>
-        <tr><td><strong>Nazwa polska przedmiotu</strong></td><td>{{ przedmiot.nazwa_pl }}</td></tr>
-        <tr><td><strong>Nazwa angielska przedmiotu</strong></td><td>{{ przedmiot.nazwa_en }}</td></tr>
-        <tr><td><strong>Rodzaj przedmiotu</strong></td><td>{{ przedmiot.modul.typ }}</td></tr>
-        <tr><td><strong>Kierunek studiów</strong></td><td>{{ przedmiot.modul.kierunek.nazwa }}</td></tr>
-        <tr><td><strong>Jzyk wykadowy</strong></td><td>{{ przedmiot.jezyk_wykladowy }}</td></tr>
-        <tr><td><strong>Poziom ksztacenia</strong></td><td>{{ przedmiot.modul.kierunek.get_poziom_display }}</td></tr>
-        <tr><td><strong>Forma studiów</strong></td><td>{{ przedmiot.modul.kierunek.get_forma_display }}</td></tr>
-        <tr><td><strong>Liczba punktów ECTS</strong></td><td>{{ przedmiot.ects }}</td></tr>
-        <tr><td><strong>Semestr</strong></td><td>{{ przedmiot.modul.semestr }}</td></tr>
-        <tr><td><strong>Przedmiot zwizany z badaniami naukowymi</strong></td><td>{% if przedmiot.badania_naukowe %}Yes{% else %}No{% endif %}</td></tr>
-        <tr><td><strong>Koordynatorzy przedmiotów</strong></td><td>{{ przedmiot.opiekun.username }} ({{ przedmiot.opiekun.email }})</td></tr>
+    <table>
+        <col style="width: 40%">
+        <col style="width: 60%">
+        <tr>
+            <td class="gray">Cykl dydaktyczny</td>
+            <td class="center">{{ przedmiot.cykl_dydaktyczny|default:"2026/2027" }}</td>
+        </tr>
+        <tr>
+            <td class="gray">Nazwa polska przedmiotu</td>
+            <td class="bold center">{{ przedmiot.nazwa_pl }}</td>
+        </tr>
+        <tr>
+            <td class="gray">Nazwa angielska przedmiotu</td>
+            <td class="center">{{ przedmiot.nazwa_en }}</td>
+        </tr>
+        <tr>
+            <td class="gray">Rodzaj przedmiotu</td>
+            <td class="center">Obowiązkowy</td>
+        </tr>
+        <tr>
+            <td class="gray">Kierunek studiów</td>
+            <td class="center">Informatyka</td>
+        </tr>
+        <tr>
+            <td class="gray">Język wykładowy</td>
+            <td class="center">{{ przedmiot.jezyk_wykladowy|default:"Angielski" }}</td>
+        </tr>
+        <tr>
+            <td class="gray">Poziom kształcenia</td>
+            <td class="center">Drugi stopień</td>
+        </tr>
+        <tr>
+            <td class="gray">Forma studiów</td>
+            <td class="center">Stacjonarne</td>
+        </tr>
+        <tr>
+            <td class="gray">Liczba punktów ECTS</td>
+            <td class="center">{{ przedmiot.ects }}</td>
+        </tr>
+        <tr>
+            <td class="gray">Semestr</td>
+            <td class="center">{{ przedmiot.modul.semestr }}</td>
+        </tr>
+        <tr>
+            <td class="gray">Przedmiot związany z badaniami naukowymi</td>
+            <td class="center">Tak/Nie</td>
+        </tr>
+        <tr>
+            <td class="gray">Koordynatorzy przedmiotów<br><small>(Imię, nazwisko, katedra, adres e-mail)</small></td>
+            <td>Jan Kowalski, jan@pcz.pl</td>
+        </tr>
     </table>
 
     <div class="section-header">Liczba godzin na semestr:</div>
     <table>
-        <tr><th>Wykad</th><th>wiczenia</th><th>Laboratorium</th><th>Projekt</th><th>Seminarium</th><th>Inne</th></tr>
+        <tr class="gray center">
+            <td>Wykład</td><td>Ćwiczenia</td><td>Lab.</td><td>Projekt</td><td>Semin.</td><td>Inne</td>
+        </tr>
         <tr class="center">
             <td>{{ przedmiot.godz_wyklad }}</td>
             <td>{{ przedmiot.godz_cwiczenia }}</td>
             <td>{{ przedmiot.godz_lab }}</td>
             <td>{{ przedmiot.godz_projekt }}</td>
             <td>{{ przedmiot.godz_seminarium }}</td>
-            <td>{{ przedmiot.godz_egzamin }}</td>
+            <td>0</td>
         </tr>
     </table>
 
-    <div class="section-header">Wymagania wstpne w zakresie wiedzy, umiejtnoci i innych kompetencji:</div>
-    <p>{{ szczegoly.wymagania_wstepne|linebreaksbr }}</p>
+    <div class="section-header">Wymagania wstępne:</div>
+    <div class="box">{{ sylabus.wymagania_wstepne|default:"-"|linebreaksbr }}</div>
 
-    <div class="section-header">Cele ksztacenia dla przedmiotu:</div>
-    <p>{{ szczegoly.opis_wstepny|linebreaksbr }}</p>
+    <div class="section-header">Cele kształcenia:</div>
+    <div class="box">{{ sylabus.opis_wstepny|default:"-"|linebreaksbr }}</div>
 
-    <div style="page-break-before: always;"></div>
-    
-    <div class="section-header">Efekty uczenia si:</div>
+    <div class="section-header">Efekty uczenia się:</div>
     <table>
-        <tr>
-            <th style="width: 15%">Efekt uczenia si</th>
-            <th style="width: 25%">Kierunkowe efekty uczenia si</th>
-            <th>Cele przedmiotu</th>
-            <th>Metoda weryfikacji</th>
+        <col style="width: 10%">
+        <col style="width: 40%">
+        <col style="width: 20%">
+        <col style="width: 30%">
+        <tr class="gray center">
+            <td>Efekt</td><td>Opis</td><td>Kierunkowe</td><td>Weryfikacja</td>
         </tr>
-        <tr><td colspan="4"><strong>Wiedza – student ma wiedz oraz rozumie:</strong></td></tr>
-        <tr><td>W1</td><td>K_W01</td><td>Patrz: Cele ksztacenia</td><td>{{ szczegoly.formy_oceny|truncatechars:50 }}</td></tr>
-        <tr><td colspan="4"><em>{{ szczegoly.efekty_wiedza }}</em></td></tr>
-        
-        <tr><td colspan="4"><strong>Umiejtnoci – student potrafi:</strong></td></tr>
-        <tr><td>U1</td><td>K_U01</td><td>...</td><td>{{ szczegoly.formy_oceny|truncatechars:50 }}</td></tr>
-        <tr><td colspan="4"><em>{{ szczegoly.efekty_umiejetnosci }}</em></td></tr>
+        <tr><td colspan="4" class="gray">Wiedza:</td></tr>
+        {% for e in efekty_W %}
+        <tr>
+            <td class="center bold">W{{forloop.counter}}</td>
+            <td>{{e.opis}}</td>
+            <td class="center">{{e.kod}}</td>
+            <td>{{sylabus.formy_oceny}}</td>
+        </tr>
+        {% endfor %}
 
-        <tr><td colspan="4"><strong>Kompetencje spoeczne:</strong></td></tr>
-        <tr><td>K1</td><td>K_K01</td><td>...</td><td>{{ szczegoly.formy_oceny|truncatechars:50 }}</td></tr>
-        <tr><td colspan="4"><em>{{ szczegoly.efekty_kompetencje }}</em></td></tr>
+        <tr><td colspan="4" class="gray">Umiejętności:</td></tr>
+        {% for e in efekty_U %}
+        <tr>
+            <td class="center bold">U{{forloop.counter}}</td>
+            <td>{{e.opis}}</td>
+            <td class="center">{{e.kod}}</td>
+            <td>{{sylabus.formy_oceny}}</td>
+        </tr>
+        {% endfor %}
     </table>
 
-    <div class="section-header">Treci przedmiotu (Harmonogram):</div>
-    <ul>
-    {% for temat in tematy %}
-        <li>Temat {{ temat.numer_tematu }}: {{ temat.temat }} ({{ temat.liczba_godzin }}h)</li>
-    {% endfor %}
-    </ul>
-
-    <div class="section-header">Dodatkowe informacje o przedmiocie:</div>
-    <ol>
-        <li><strong>Metody i techniki nauczania:</strong><br> {{ szczegoly.metody_nauczania }}</li>
-        <li><strong>Metody weryfikacji wiedzy:</strong><br> {{ szczegoly.formy_oceny }}</li>
-        <li><strong>Sposoby ustalenia oceny kocowej:</strong><br> {{ szczegoly.zasady_oceniania }}</li>
-        <li><strong>Forma oceny:</strong> Egzamin / Zaliczenie</li>
-        <li><strong>Sposoby odrabiania nieobecnoci:</strong><br> {{ szczegoly.odrabianie_zajec }}</li>
-        <li><strong>Wymagania dotyczce obecnoci:</strong><br> {{ szczegoly.wymagania_obecnosci }}</li>
-    </ol>
-
     <div style="page-break-before: always;"></div>
 
-    <div class="section-header">OBCIENIE PRAC STUDENTA</div>
+    <div class="header-title">OBCIĄŻENIE PRACĄ STUDENTA</div>
     <table>
-        <tr>
-            <th style="width: 5%">L.p.</th>
-            <th>Forma aktywnoci</th>
-            <th style="width: 15%">rednia liczba godzin</th>
+        <col style="width: 8%">
+        <col style="width: 77%">
+        <col style="width: 15%">
+        <tr class="gray center">
+            <td>L.p.</td><td>Forma aktywności</td><td>Godziny</td>
         </tr>
-        <tr><td colspan="3"><strong>1. Godziny kontaktowe z prowadzcym</strong></td></tr>
-        <tr><td>1.1</td><td>Wykady</td><td class="center">{{ przedmiot.godz_wyklad }}</td></tr>
-        <tr><td>1.2</td><td>wiczenia</td><td class="center">{{ przedmiot.godz_cwiczenia }}</td></tr>
-        <tr><td>1.3</td><td>Laboratorium</td><td class="center">{{ przedmiot.godz_lab }}</td></tr>
-        <tr><td>1.4</td><td>Projekt</td><td class="center">{{ przedmiot.godz_projekt }}</td></tr>
-        <tr><td>1.5</td><td>Seminarium</td><td class="center">{{ przedmiot.godz_seminarium }}</td></tr>
-        <tr><td>1.6</td><td>Egzamin</td><td class="center">{{ przedmiot.godz_egzamin }}</td></tr>
-        <tr style="background-color: #eee;">
-            <td colspan="2" style="text-align: right;"><strong>Razem godzin kontaktowych:</strong></td>
-            <td class="center"><strong>{{ suma_kontaktowe }}</strong></td>
+
+        <tr><td class="center bold">1.</td><td colspan="2" class="bold">Godziny kontaktowe z prowadzącym</td></tr>
+        <tr><td class="center">1.1</td><td>Wykłady</td><td class="center">{{ przedmiot.godz_wyklad }}</td></tr>
+        <tr><td class="center">1.2</td><td>Ćwiczenia</td><td class="center">{{ przedmiot.godz_cwiczenia }}</td></tr>
+        <tr><td class="center">1.3</td><td>Laboratorium</td><td class="center">{{ przedmiot.godz_lab }}</td></tr>
+        <tr><td class="center">1.4</td><td>Projekt</td><td class="center">{{ przedmiot.godz_projekt }}</td></tr>
+        <tr><td class="center">1.5</td><td>Seminarium</td><td class="center">{{ przedmiot.godz_seminarium }}</td></tr>
+        <tr><td class="center">1.6</td><td>Egzamin</td><td class="center">{{ h_egz }}</td></tr>
+        <tr class="gray">
+            <td></td><td class="right bold">Razem kontaktowe:</td><td class="center bold">{{ sum_kon }}</td>
         </tr>
-        
-        <tr><td colspan="3"><strong>2. Praca wasna studenta</strong></td></tr>
-        <tr><td>2.1</td><td>Przygotowanie do wicze</td><td class="center">{{ szczegoly.pw_przygotowanie_cw }}</td></tr>
-        <tr><td>2.2</td><td>Przygotowanie do laboratorium (sprawozdania)</td><td class="center">{{ szczegoly.pw_sprawozdania }}</td></tr>
-        <tr><td>2.3</td><td>Przygotowanie projektu</td><td class="center">{{ szczegoly.pw_projekt }}</td></tr>
-        <tr><td>2.4</td><td>Przygotowanie do zaliczenia wykadu</td><td class="center">{{ szczegoly.pw_wyklad }}</td></tr>
-        <tr><td>2.5</td><td>Przygotowanie do egzaminu</td><td class="center">{{ szczegoly.pw_egzamin }}</td></tr>
-        <tr><td>2.6</td><td>Zapoznanie ze wskazan literatur</td><td class="center">{{ szczegoly.pw_literatura }}</td></tr>
-        <tr style="background-color: #eee;">
-            <td colspan="2" style="text-align: right;"><strong>Razem godzin pracy wasnej:</strong></td>
-            <td class="center"><strong>{{ suma_wlasna }}</strong></td>
+
+        <tr><td class="center bold">2.</td><td colspan="2" class="bold">Praca własna studenta</td></tr>
+        <tr><td class="center">2.1</td><td>Przygotowanie do ćwiczeń</td><td class="center">{{ p_cw }}</td></tr>
+        <tr><td class="center">2.2</td><td>Przygotowanie do laboratoriów</td><td class="center">{{ p_lab }}</td></tr>
+        <tr><td class="center">2.3</td><td>Przygotowanie projektu</td><td class="center">{{ p_proj }}</td></tr>
+        <tr><td class="center">2.4</td><td>Przygotowanie do zaliczenia</td><td class="center">{{ p_wyk }}</td></tr>
+        <tr><td class="center">2.5</td><td>Przygotowanie do egzaminu</td><td class="center">{{ p_egz }}</td></tr>
+        <tr><td class="center">2.6</td><td>Literatura</td><td class="center">{{ p_lit }}</td></tr>
+        <tr class="gray">
+            <td></td><td class="right bold">Razem praca własna:</td><td class="center bold">{{ sum_wla }}</td>
         </tr>
-        
+
         <tr style="border-top: 2px solid black;">
-            <td colspan="2"><strong>Ogólne obcienie prac studenta (SUMA)</strong></td>
-            <td class="center" style="font-size: 1.2em;"><strong>{{ suma_calkowita }}</strong></td>
+            <td colspan="2" class="right bold">OGÓLNE OBCIĄŻENIE PRACĄ:</td>
+            <td class="center bold">{{ sum_tot }}</td>
         </tr>
     </table>
 
-    <div class="section-header">Literatura podstawowa i uzupeniajca:</div>
-    <p>{{ szczegoly.literatura|linebreaksbr }}</p>
+    <div class="section-header">Literatura:</div>
+    <div class="box">{{ sylabus.literatura|default:"-"|linebreaksbr }}</div>
 
-    {% if przedmiot.badania_naukowe %}
-    <div class="section-header">Badania i publikacje:</div>
-    <p>{{ szczegoly.badania_publikacje|linebreaksbr }}</p>
-    {% endif %}
-
-    <div class="section-header">Inne przydatne informacje:</div>
-    <p>{{ szczegoly.inne_informacje|default:"Wszelkie informacje na stronie Wydziau." }}</p>
+    <div class="section-header">Informacje dodatkowe:</div>
+    <div class="box">
+        1. Metody nauczania: {{ sylabus.metody_nauczania|default:"-" }}<br>
+        2. Weryfikacja: {{ sylabus.formy_oceny|default:"-" }}<br>
+        3. Zasady oceniania: {{ sylabus.zasady_oceniania|default:"-" }}
+    </div>
 
 </body>
 </html>
