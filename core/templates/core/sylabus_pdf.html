@@ -133,6 +133,8 @@
         {% endfor %}
     </div>
 
+    <div style="page-break-before: always;"></div>
+
     <div class="section-header">Efekty uczenia się:</div>
     <table>
         <col style="width: 10%">
@@ -184,6 +186,30 @@
 
     <div style="page-break-before: always;"></div>
 
+    <div class="section-header">Treści przedmiotu zapewniające efekty uczenia się:</div>
+    <table>
+        <col style="width: 8%">
+        <col style="width: 50%">
+        <col style="width: 22%">
+        <col style="width: 20%">
+        <tr class="gray center">
+            <td>Lp.</td>
+            <td>Treści programowe</td>
+            <td>Efekty uczenia się dla przedmiotu</td>
+            <td>Formy prowadzonych zajęć</td>
+        </tr>
+        {% for t in tematy %}
+        <tr>
+            <td class="center">{{ t.lp }}.</td>
+            <td>{{ t.tresc }}</td>
+            <td class="center">{{ t.efekty }}</td>
+            <td class="center">{{ t.forma }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div style="page-break-before: always;"></div>
+
     <div class="header-title">OBCIĄŻENIE PRACĄ STUDENTA</div>
     <table>
         <col style="width: 8%">
@@ -229,7 +255,7 @@
         1. Metody nauczania: {{ sylabus.metody_nauczania|default:"-" }}<br>
         2. Weryfikacja: {{ sylabus.formy_oceny|default:"-" }}<br>
         3. Zasady oceniania: {{ sylabus.zasady_oceniania|default:"-" }}<br>
-        4. Publikacje badawcze: {{ sylabus.inne_informacje|default:"-" }}
+        4. Badania: {{ sylabus.inne_informacje|default:"-" }}
     </div>
 
 </body>

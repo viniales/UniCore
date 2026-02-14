@@ -14,6 +14,7 @@ def lista_przedmiotow(request):
 def edycja_sylabusa(request, przedmiot_id):
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, created = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
+
     if request.method == 'POST':
         form = SylabusForm(request.POST, instance=sylabus)
         if form.is_valid():
@@ -30,54 +31,82 @@ def edycja_sylabusa(request, przedmiot_id):
                                                   liczba_godzin=2)
             return redirect('edycja_sylabusa', przedmiot_id=przedmiot.id)
     else:
-        form = SylabusForm(instance=sylabus, initial={'efekty_kierunkowe': przedmiot.efekty_kierunkowe.all()})
-    tematy = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
-    return render(request, 'core/edycja_sylabusa.html', {'form': form, 'przedmiot': przedmiot, 'tematy': tematy})
+        # WCZYTYWANIE DANYCH Z BAZY PO ODŚWIEŻENIU
+        tematy_zapisane = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
+        harmonogram_text = "\n".join([t.temat for t in tematy_zapisane])
+        form = SylabusForm(instance=sylabus, initial={
+            'efekty_kierunkowe': przedmiot.efekty_kierunkowe.all(),
+            'harmonogram_raw': harmonogram_text  # To naprawia znikające bloczki w JS
+        })
+
+    # INTELIGENTNE DEKODOWANIE DLA PRAWEJ KOLUMNY (PODGLĄD W EDYCJI)
+    tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
+    tematy_zdekodowane = []
+    counters = {}
+
+    for t in tematy_db:
+        tresc = t.temat
+        forma = 'wykład'
+        efekty = ''
+        if tresc.startswith('['):
+            end_idx = tresc.find(']')
+            if end_idx != -1:
+                meta = tresc[1:end_idx]
+                tresc_wlasciwa = tresc[end_idx + 1:].strip()
+                parts = meta.split('|')
+                forma = parts[0].strip()
+                if len(parts) > 1:
+                    efekty = parts[1].strip()
+                tresc = tresc_wlasciwa
+
+        if forma not in counters:
+            counters[forma] = 1
+
+        tematy_zdekodowane.append({
+            'lp': counters[forma],
+            'tresc': tresc,
+            'efekty': efekty,
+            'forma': forma
+        })
+        counters[forma] += 1
+
+    return render(request, 'core/edycja_sylabusa.html', {
+        'form': form,
+        'przedmiot': przedmiot,
+        'tematy': tematy_zdekodowane
+    })
 
 
 def pobierz_pdf(request, przedmiot_id):
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, _ = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
-    tematy = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
 
-    # DEKODOWANIE CELÓW I METOD PODZIELONYCH NA W, U, K
+    # 1. DEKODOWANIE CELÓW I METOD Z FORMULARZA
     raw_text = sylabus.opis_wstepny or ""
     cele_lista = []
     metody_dict = {}
     mode = 'cele'
-
     for line in raw_text.split('\n'):
         line = line.strip()
         if not line: continue
         if line == '---METODY---':
             mode = 'metody'
             continue
-
         parts = line.split('|')
         if mode == 'cele' and len(parts) >= 3:
-            cele_lista.append({
-                'kategoria': parts[0].strip(),
-                'kod': parts[1].strip(),
-                'tresc': parts[2].strip()
-            })
+            cele_lista.append({'kategoria': parts[0].strip(), 'kod': parts[1].strip(), 'tresc': parts[2].strip()})
         elif mode == 'metody' and len(parts) >= 2:
             metody_dict[parts[0].strip()] = parts[1].strip()
 
-    # FUNKCJA PRZYPISUJĄCA WŁAŚCIWE CELE I METODY DO W, U, K
     def przygotuj_efekty(queryset, kategoria):
         wynik = []
-        # Szukamy celów O1, O2 tylko dla tej kategorii
         przypisane_cele = [c['kod'] for c in cele_lista if c['kategoria'] == kategoria]
         cele_string = ", ".join(przypisane_cele)
         metoda = metody_dict.get(kategoria, sylabus.formy_oceny or "")
-
         for i, efekt in enumerate(queryset, 1):
             wynik.append({
-                'symbol': f"{kategoria}{i}",
-                'opis': efekt.opis,
-                'kod': efekt.kod,
-                'cele': cele_string,
-                'metoda': metoda
+                'symbol': f"{kategoria}{i}", 'opis': efekt.opis, 'kod': efekt.kod,
+                'cele': cele_string, 'metoda': metoda
             })
         return wynik
 
@@ -85,7 +114,39 @@ def pobierz_pdf(request, przedmiot_id):
     efekty_U = przygotuj_efekty(przedmiot.efekty_kierunkowe.filter(kategoria='U'), 'U')
     efekty_K = przygotuj_efekty(przedmiot.efekty_kierunkowe.filter(kategoria='K'), 'K')
 
-    # Obliczenia godzin pracy studenta
+    # 2. INTELIGENTNE DEKODOWANIE HARMONOGRAMU DO PDF
+    tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
+    tematy_zdekodowane = []
+    counters = {}
+
+    for t in tematy_db:
+        tresc = t.temat
+        forma = 'wykład'
+        efekty = ''
+        if tresc.startswith('['):
+            end_idx = tresc.find(']')
+            if end_idx != -1:
+                meta = tresc[1:end_idx]
+                tresc_wlasciwa = tresc[end_idx + 1:].strip()
+                parts = meta.split('|')
+                forma = parts[0].strip()
+                if len(parts) > 1:
+                    efekty = parts[1].strip()
+                tresc = tresc_wlasciwa
+
+        if forma not in counters:
+            counters[forma] = 1
+
+        tematy_zdekodowane.append({
+            'lp': counters[forma],
+            'tresc': tresc,
+            'efekty': efekty,
+            'forma': forma,
+            'liczba_godzin': t.liczba_godzin
+        })
+        counters[forma] += 1
+
+    # 3. OBLICZENIA GODZIN
     h_wyk = przedmiot.godz_wyklad or 0
     h_cw = przedmiot.godz_cwiczenia or 0
     h_lab = przedmiot.godz_lab or 0
@@ -103,7 +164,8 @@ def pobierz_pdf(request, przedmiot_id):
     sum_wla = p_cw + p_lab + p_proj + p_wyk + p_egz + p_lit
 
     context = {
-        'przedmiot': przedmiot, 'sylabus': sylabus, 'tematy': tematy,
+        'przedmiot': przedmiot, 'sylabus': sylabus,
+        'tematy': tematy_zdekodowane,
         'cele_lista': cele_lista,
         'efekty_W': efekty_W, 'efekty_U': efekty_U, 'efekty_K': efekty_K,
         'sum_kon': sum_kon, 'sum_wla': sum_wla, 'sum_tot': sum_kon + sum_wla,

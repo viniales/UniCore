@@ -30,7 +30,6 @@
         #id_efekty_kierunkowe label { font-weight: normal; margin: 0; cursor: pointer; font-size: 0.95em; line-height: 1.4; color: #333; }
         #id_efekty_kierunkowe input[type="checkbox"] { margin-right: 15px; margin-top: 4px; transform: scale(1.3); cursor: pointer; }
 
-        /* Style dla managera celów */
         .manager-col { background: #fdfdfd; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; }
     </style>
 </head>
@@ -58,12 +57,14 @@
         {% csrf_token %}
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">📝</span> 1. Informacje Podstawowe i Zarządzanie Celami (O1, O2...)</div>
+            <div class="section-header"><span class="section-icon">📝</span> 1. Informacje Podstawowe i Cele Przedmiotu</div>
             <div class="card-body">
                 <div class="row"><div class="col-md-12"><label>Jzyk wykadowy</label>{{ form.jezyk_wykladowy }}</div></div>
                 <label>Wymagania wstpne</label>{{ form.wymagania_wstepne }}
 
-                <div style="display:none;">{{ form.opis_wstepny }}</div> <label class="mt-4 fs-5 text-primary">Cele Kształcenia i Metody Weryfikacji (z podziałem na efekty):</label>
+                <div style="display:none;">{{ form.opis_wstepny }}</div>
+
+                <label class="mt-4 fs-5 text-primary">Cele Kształcenia i Metody Weryfikacji (z podziałem na efekty):</label>
                 <div class="row mt-2">
                     <div class="col-md-4">
                         <div class="manager-col">
@@ -96,7 +97,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -105,7 +105,7 @@
             <div class="card-body">
                 <div class="alert alert-primary border-0 d-flex align-items-center">
                     <span class="fs-4 me-3">ℹ️</span>
-                    <div><strong>Instrukcja:</strong> Zaznacz efekty z listy poniej (zdefiniowane przez Prodziekana). Powiązania z celami O1, O2 i metodami zostaną wygenerowane automatycznie na podstawie sekcji wyżej.</div>
+                    <div><strong>Instrukcja:</strong> Zaznacz efekty z listy poniżej. Zostaną one automatycznie powiązane z celami dodanymi wyżej.</div>
                 </div>
                 <div class="card mt-3" style="border: 1px solid #cce5ff;">
                     <div class="card-header bg-light fw-bold text-primary">Lista Efektów Kierunkowych (Wybierz z listy)</div>
@@ -121,15 +121,30 @@
             <div class="section-header bg-primary text-white"><span class="section-icon">⚡</span> 3. Harmonogram (Smart Paste)</div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6"><label class="mt-0">Wklej list tematów tutaj:</label>{{ form.harmonogram_raw }}</div>
-                    <div class="col-md-6"><label class="mt-0">Podgld:</label>
-                        {% if tematy %}
-                        <div class="list-group list-group-flush border rounded mt-2" style="max-height: 250px; overflow-y: auto;">
-                            {% for t in tematy %}
-                            <div class="list-group-item py-1 px-2 small"><span class="fw-bold">{{ t.numer_tematu }}.</span> {{ t.temat }}</div>
-                            {% endfor %}
+                    <div class="col-md-7 border-end pe-4">
+                        <div style="display:none;">{{ form.harmonogram_raw }}</div>
+                        <label class="mt-0 fw-bold text-primary mb-3">Zarządzaj blokami i tematami:</label>
+                        <div id="harmonogram-ui-container"></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-3 fw-bold w-100" onclick="window.addHarmGroup()">➕ Dodaj kolejną grupę zajęć</button>
+                    </div>
+
+                    <div class="col-md-5 ps-4">
+                        <label class="mt-0 fw-bold text-success mb-3">Obecnie zapisane w bazie:</label>
+                        <div class="bg-light p-3 rounded border" style="max-height: 500px; overflow-y: auto;">
+                            {% if tematy %}
+                                <ul class="list-unstyled mb-0">
+                                {% for t in tematy %}
+                                    <li class="py-1 border-bottom small text-dark">
+                                        <strong class="text-uppercase">{{ t.forma }} {{ t.lp }}.</strong>
+                                        {{ t.tresc }}
+                                        {% if t.efekty %}<span class="text-primary fw-bold">[{{ t.efekty }}]</span>{% endif %}
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                <div class="text-muted text-center py-4 small">Brak dodanych zajęć. Zapisz dokument, aby odświeżyć podgląd.</div>
+                            {% endif %}
                         </div>
-                        {% else %}<div class="alert alert-secondary mt-2">Brak tematów.</div>{% endif %}
                     </div>
                 </div>
             </div>
@@ -179,12 +194,15 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const field = document.getElementById("id_opis_wstepny");
+        // ==========================================
+        // 1. ZARZĄDZANIE CELAMI I METODAMI WERYFIKACJI
+        // ==========================================
+        const fieldCele = document.getElementById("id_opis_wstepny");
         let celeList = [];
         let metodyDict = { W: '', U: '', K: '' };
 
-        function parseData() {
-            const raw = field.value.trim();
+        function parseCeleData() {
+            const raw = fieldCele.value.trim();
             celeList = [];
             metodyDict = { W: '', U: '', K: '' };
             if (!raw) return;
@@ -204,7 +222,7 @@
             });
         }
 
-        function saveData() {
+        function saveCeleData() {
             let lines = [];
             let counter = 1;
             celeList.forEach(c => {
@@ -215,10 +233,10 @@
             for (const [kat, val] of Object.entries(metodyDict)) {
                 if (val.trim()) lines.push(`${kat} | ${val.trim()}`);
             }
-            field.value = lines.join('\n');
+            fieldCele.value = lines.join('\n');
         }
 
-        function renderUI() {
+        function renderCeleUI() {
             document.getElementById('cele-list-W').innerHTML = '';
             document.getElementById('cele-list-U').innerHTML = '';
             document.getElementById('cele-list-K').innerHTML = '';
@@ -240,14 +258,158 @@
             document.getElementById('metoda-K').value = metodyDict.K;
         }
 
-        // Bindowanie funkcji do window dla onclick z HTML
-        window.addCel = function(kat) { celeList.push({ kategoria: kat, tresc: '' }); saveData(); renderUI(); };
-        window.removeCel = function(index) { celeList.splice(index, 1); saveData(); renderUI(); };
-        window.updateCel = function(index, value) { celeList[index].tresc = value; saveData(); };
-        window.updateMetoda = function(kat, value) { metodyDict[kat] = value; saveData(); };
+        window.addCel = function(kat) { celeList.push({ kategoria: kat, tresc: '' }); saveCeleData(); renderCeleUI(); };
+        window.removeCel = function(index) { celeList.splice(index, 1); saveCeleData(); renderCeleUI(); };
+        window.updateCel = function(index, value) { celeList[index].tresc = value; saveCeleData(); };
+        window.updateMetoda = function(kat, value) { metodyDict[kat] = value; saveCeleData(); };
 
-        parseData();
-        renderUI();
+        parseCeleData();
+        renderCeleUI();
+
+
+        // ==========================================
+        // 2. NOWY HARMONOGRAM Z DYNAMICZNĄ LISTĄ
+        // ==========================================
+        const fieldHarm = document.getElementById("id_harmonogram_raw");
+        const harmContainer = document.getElementById("harmonogram-ui-container");
+        let harmGroups = [];
+
+        function parseHarmData() {
+            const raw = fieldHarm.value.trim();
+            harmGroups = [];
+            if (!raw) {
+                harmGroups.push({forma: 'wykład', efekty: '', tematy: ['']});
+                return;
+            }
+            let currentGroup = null;
+            raw.split('\n').forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                let forma = 'wykład';
+                let efekty = '';
+                let tresc = line;
+                if (line.startsWith('[')) {
+                    let endIdx = line.indexOf(']');
+                    if (endIdx !== -1) {
+                        let meta = line.substring(1, endIdx);
+                        tresc = line.substring(endIdx+1).trim();
+                        let parts = meta.split('|');
+                        forma = parts[0].trim();
+                        if (parts.length > 1) efekty = parts[1].trim();
+                    }
+                }
+                if (!currentGroup || currentGroup.forma !== forma || currentGroup.efekty !== efekty) {
+                    currentGroup = { forma: forma, efekty: efekty, tematy: [] };
+                    harmGroups.push(currentGroup);
+                }
+                currentGroup.tematy.push(tresc);
+            });
+            // Dbamy o to, by każda grupa miała co najmniej jedno (nawet puste) pole do wpisywania
+            harmGroups.forEach(g => { if (g.tematy.length === 0) g.tematy.push(''); });
+        }
+
+        function saveHarmData() {
+            let lines = [];
+            harmGroups.forEach(g => {
+                const prefix = `[${g.forma}|${g.efekty}]`;
+                g.tematy.forEach(t => {
+                    if(t.trim()) lines.push(`${prefix} ${t.trim()}`);
+                });
+            });
+            fieldHarm.value = lines.join('\n');
+        }
+
+        function renderHarmUI() {
+            let html = '';
+            const opcje = ['wykład', 'laboratorium', 'ćwiczenia', 'projekt', 'seminarium'];
+
+            harmGroups.forEach((g, i) => {
+                html += `
+                <div class="border border-secondary rounded p-3 mb-3 bg-white shadow-sm position-relative">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" onclick="window.removeHarm(${i})">Usuń grupę</button>
+
+                    <div class="row mb-3 pe-5">
+                        <div class="col-md-6">
+                            <label class="small fw-bold">Rodzaj zajęć</label>
+                            <select class="form-select form-select-sm border-dark" onchange="window.updateHarm(${i}, 'forma', this.value)">`;
+                opcje.forEach(o => { html += `<option value="${o}" ${g.forma === o ? 'selected' : ''}>${o}</option>`; });
+                html += `   </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold">Efekty (np. W1, K1)</label>
+                            <input type="text" class="form-control form-control-sm border-dark" placeholder="W1, K1" value="${g.efekty}" oninput="window.updateHarm(${i}, 'efekty', this.value)">
+                        </div>
+                    </div>
+
+                    <label class="small fw-bold mb-2 text-primary">Wpisz temat i naciśnij ENTER, aby przejść do kolejnego:</label>
+                    <div id="tematy-list-${i}">`;
+
+                // Generowanie inputów dla tematów
+                g.tematy.forEach((t, tIdx) => {
+                    html += `
+                    <div class="d-flex mb-1 align-items-center">
+                        <span class="fw-bold text-secondary text-end me-2" style="width: 25px;">${tIdx + 1}.</span>
+                        <input type="text" class="form-control form-control-sm border-dark harm-input-${i}" placeholder="Wpisz temat..." value="${t}"
+                               oninput="window.updateHarmTemat(${i}, ${tIdx}, this.value)"
+                               onkeydown="window.handleHarmKey(event, ${i}, ${tIdx})">
+                        <button type="button" class="btn btn-sm btn-outline-danger ms-1" tabindex="-1" onclick="window.removeHarmTemat(${i}, ${tIdx})">✖</button>
+                    </div>`;
+                });
+
+                html += `
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light border border-secondary text-secondary mt-2 w-100" onclick="window.addHarmTemat(${i})">➕ Dodaj kolejny temat (ręcznie)</button>
+                </div>`;
+            });
+            harmContainer.innerHTML = html;
+        }
+
+        // Akcje dla grup
+        window.addHarmGroup = function() { harmGroups.push({forma: 'laboratorium', efekty: '', tematy: ['']}); saveHarmData(); renderHarmUI(); };
+        window.removeHarm = function(i) { harmGroups.splice(i, 1); saveHarmData(); renderHarmUI(); };
+        window.updateHarm = function(i, pole, val) { harmGroups[i][pole] = val; saveHarmData(); };
+
+        // Akcje dla poszczególnych tematów w grupie
+        window.updateHarmTemat = function(gIdx, tIdx, val) {
+            harmGroups[gIdx].tematy[tIdx] = val;
+            saveHarmData();
+        };
+
+        window.removeHarmTemat = function(gIdx, tIdx) {
+            harmGroups[gIdx].tematy.splice(tIdx, 1);
+            if(harmGroups[gIdx].tematy.length === 0) harmGroups[gIdx].tematy.push('');
+            saveHarmData();
+            renderHarmUI();
+        };
+
+        window.addHarmTemat = function(gIdx) {
+            harmGroups[gIdx].tematy.push('');
+            saveHarmData();
+            renderHarmUI();
+            // Przenieś fokus na nowy element
+            setTimeout(() => {
+                const inputs = document.querySelectorAll(`.harm-input-${gIdx}`);
+                if (inputs.length > 0) inputs[inputs.length - 1].focus();
+            }, 50);
+        };
+
+        window.handleHarmKey = function(e, gIdx, tIdx) {
+            // Reaguj tylko na Enter
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Zapobiega wysłaniu formularza
+                // Jeżeli to jest ostatni element - dodaj nowy
+                if (tIdx === harmGroups[gIdx].tematy.length - 1) {
+                    window.addHarmTemat(gIdx);
+                } else {
+                    // Jak nie, przenieś fokus na następny
+                    const inputs = document.querySelectorAll(`.harm-input-${gIdx}`);
+                    if (inputs[tIdx + 1]) inputs[tIdx + 1].focus();
+                }
+            }
+        };
+
+        parseHarmData();
+        renderHarmUI();
     });
 </script>
 
