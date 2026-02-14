@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-# Importujemy nową bibliotekę
 from weasyprint import HTML, CSS
 from .models import Przedmiot, SzczegolySylabusa, TrescZajec
 from .forms import SylabusForm
@@ -37,16 +36,56 @@ def edycja_sylabusa(request, przedmiot_id):
 
 
 def pobierz_pdf(request, przedmiot_id):
-    """GENEROWANIE PDF PRZEZ WEASYPRINT - IDEALNA JAKOŚĆ"""
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, _ = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
     tematy = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
 
-    efekty_W = przedmiot.efekty_kierunkowe.filter(kategoria='W')
-    efekty_U = przedmiot.efekty_kierunkowe.filter(kategoria='U')
-    efekty_K = przedmiot.efekty_kierunkowe.filter(kategoria='K')
+    # DEKODOWANIE CELÓW I METOD PODZIELONYCH NA W, U, K
+    raw_text = sylabus.opis_wstepny or ""
+    cele_lista = []
+    metody_dict = {}
+    mode = 'cele'
 
-    # Obliczenia
+    for line in raw_text.split('\n'):
+        line = line.strip()
+        if not line: continue
+        if line == '---METODY---':
+            mode = 'metody'
+            continue
+
+        parts = line.split('|')
+        if mode == 'cele' and len(parts) >= 3:
+            cele_lista.append({
+                'kategoria': parts[0].strip(),
+                'kod': parts[1].strip(),
+                'tresc': parts[2].strip()
+            })
+        elif mode == 'metody' and len(parts) >= 2:
+            metody_dict[parts[0].strip()] = parts[1].strip()
+
+    # FUNKCJA PRZYPISUJĄCA WŁAŚCIWE CELE I METODY DO W, U, K
+    def przygotuj_efekty(queryset, kategoria):
+        wynik = []
+        # Szukamy celów O1, O2 tylko dla tej kategorii
+        przypisane_cele = [c['kod'] for c in cele_lista if c['kategoria'] == kategoria]
+        cele_string = ", ".join(przypisane_cele)
+        metoda = metody_dict.get(kategoria, sylabus.formy_oceny or "")
+
+        for i, efekt in enumerate(queryset, 1):
+            wynik.append({
+                'symbol': f"{kategoria}{i}",
+                'opis': efekt.opis,
+                'kod': efekt.kod,
+                'cele': cele_string,
+                'metoda': metoda
+            })
+        return wynik
+
+    efekty_W = przygotuj_efekty(przedmiot.efekty_kierunkowe.filter(kategoria='W'), 'W')
+    efekty_U = przygotuj_efekty(przedmiot.efekty_kierunkowe.filter(kategoria='U'), 'U')
+    efekty_K = przygotuj_efekty(przedmiot.efekty_kierunkowe.filter(kategoria='K'), 'K')
+
+    # Obliczenia godzin pracy studenta
     h_wyk = przedmiot.godz_wyklad or 0
     h_cw = przedmiot.godz_cwiczenia or 0
     h_lab = przedmiot.godz_lab or 0
@@ -65,6 +104,7 @@ def pobierz_pdf(request, przedmiot_id):
 
     context = {
         'przedmiot': przedmiot, 'sylabus': sylabus, 'tematy': tematy,
+        'cele_lista': cele_lista,
         'efekty_W': efekty_W, 'efekty_U': efekty_U, 'efekty_K': efekty_K,
         'sum_kon': sum_kon, 'sum_wla': sum_wla, 'sum_tot': sum_kon + sum_wla,
         'h_egz': h_egz, 'p_cw': p_cw, 'p_lab': p_lab, 'p_proj': p_proj,
@@ -73,9 +113,6 @@ def pobierz_pdf(request, przedmiot_id):
 
     # Renderowanie HTML
     html_string = render_to_string('core/sylabus_pdf.html', context)
-
-    # Generowanie PDF
-    # base_url jest potrzebny, żeby działały obrazki (jeśli jakieś będą)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf_file = html.write_pdf()
 

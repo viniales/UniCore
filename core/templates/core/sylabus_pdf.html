@@ -124,35 +124,60 @@
     <div class="section-header">Wymagania wstępne:</div>
     <div class="box">{{ sylabus.wymagania_wstepne|default:"-"|linebreaksbr }}</div>
 
-    <div class="section-header">Cele kształcenia:</div>
-    <div class="box">{{ sylabus.opis_wstepny|default:"-"|linebreaksbr }}</div>
+    <div class="section-header">Cele kształcenia dla przedmiotu:</div>
+    <div class="box">
+        {% for cel in cele_lista %}
+            <b>{{ cel.kod }}.</b> {{ cel.tresc }}<br>
+        {% empty %}
+            {{ sylabus.opis_wstepny|default:"-"|linebreaksbr }}
+        {% endfor %}
+    </div>
 
     <div class="section-header">Efekty uczenia się:</div>
     <table>
         <col style="width: 10%">
-        <col style="width: 40%">
+        <col style="width: 35%">
         <col style="width: 20%">
-        <col style="width: 30%">
+        <col style="width: 15%">
+        <col style="width: 20%">
         <tr class="gray center">
-            <td>Efekt</td><td>Opis</td><td>Kierunkowe</td><td>Weryfikacja</td>
+            <td>Efekty uczenia się:</td>
+            <td>Efekty w zakresie</td>
+            <td>Kierunkowe efekty uczenia się</td>
+            <td>Cele przedmiotu</td>
+            <td>Metoda weryfikacji</td>
         </tr>
-        <tr><td colspan="4" class="gray">Wiedza:</td></tr>
+
+        <tr><td colspan="5" class="gray">Wiedza – student ma wiedzę oraz rozumie:</td></tr>
         {% for e in efekty_W %}
         <tr>
-            <td class="center bold">W{{forloop.counter}}</td>
+            <td class="center bold">{{e.symbol}}</td>
             <td>{{e.opis}}</td>
             <td class="center">{{e.kod}}</td>
-            <td>{{sylabus.formy_oceny}}</td>
+            <td class="center bold">{{e.cele}}</td>
+            <td>{{e.metoda}}</td>
         </tr>
         {% endfor %}
 
-        <tr><td colspan="4" class="gray">Umiejętności:</td></tr>
+        <tr><td colspan="5" class="gray">Umiejętności - student potrafi:</td></tr>
         {% for e in efekty_U %}
         <tr>
-            <td class="center bold">U{{forloop.counter}}</td>
+            <td class="center bold">{{e.symbol}}</td>
             <td>{{e.opis}}</td>
             <td class="center">{{e.kod}}</td>
-            <td>{{sylabus.formy_oceny}}</td>
+            <td class="center bold">{{e.cele}}</td>
+            <td>{{e.metoda}}</td>
+        </tr>
+        {% endfor %}
+
+        <tr><td colspan="5" class="gray">Kompetencje społeczne:</td></tr>
+        {% for e in efekty_K %}
+        <tr>
+            <td class="center bold">{{e.symbol}}</td>
+            <td>{{e.opis}}</td>
+            <td class="center">{{e.kod}}</td>
+            <td class="center bold">{{e.cele}}</td>
+            <td>{{e.metoda}}</td>
         </tr>
         {% endfor %}
     </table>
@@ -203,7 +228,8 @@
     <div class="box">
         1. Metody nauczania: {{ sylabus.metody_nauczania|default:"-" }}<br>
         2. Weryfikacja: {{ sylabus.formy_oceny|default:"-" }}<br>
-        3. Zasady oceniania: {{ sylabus.zasady_oceniania|default:"-" }}
+        3. Zasady oceniania: {{ sylabus.zasady_oceniania|default:"-" }}<br>
+        4. Publikacje badawcze: {{ sylabus.inne_informacje|default:"-" }}
     </div>
 
 </body>

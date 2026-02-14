@@ -6,17 +6,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; }
-        .editor-container { max-width: 900px; margin: 0 auto; }
+        .editor-container { max-width: 1100px; margin: 0 auto; }
         .section-card { border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; border-radius: 8px; }
-        .section-header { 
-            background-color: #fff; 
-            border-bottom: 2px solid #e9ecef; 
-            padding: 15px 20px; 
-            font-weight: bold; 
-            color: #2c3e50; 
-            border-radius: 8px 8px 0 0;
-            display: flex;
-            align-items: center;
+        .section-header {
+            background-color: #fff; border-bottom: 2px solid #e9ecef;
+            padding: 15px 20px; font-weight: bold; color: #2c3e50; border-radius: 8px 8px 0 0;
+            display: flex; align-items: center;
         }
         .section-icon { margin-right: 10px; font-size: 1.2em; }
         .card-body { padding: 25px; background-color: #fff; border-radius: 0 0 8px 8px; }
@@ -27,23 +22,22 @@
 
         /* Styl dla checkboxów */
         #id_efekty_kierunkowe { list-style: none; padding: 0; margin: 0; }
-        #id_efekty_kierunkowe li { 
-            background: #fff; 
-            border-bottom: 1px solid #eee; 
-            padding: 12px; 
-            display: flex; 
-            align-items: flex-start;
+        #id_efekty_kierunkowe li {
+            background: #fff; border-bottom: 1px solid #eee; padding: 12px; display: flex; align-items: flex-start;
         }
         #id_efekty_kierunkowe li:last-child { border-bottom: none; }
         #id_efekty_kierunkowe li:hover { background: #f1f8ff; }
         #id_efekty_kierunkowe label { font-weight: normal; margin: 0; cursor: pointer; font-size: 0.95em; line-height: 1.4; color: #333; }
         #id_efekty_kierunkowe input[type="checkbox"] { margin-right: 15px; margin-top: 4px; transform: scale(1.3); cursor: pointer; }
+
+        /* Style dla managera celów */
+        .manager-col { background: #fdfdfd; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; }
     </style>
 </head>
 <body class="pb-5">
 
 <div class="container mt-5 mb-5 editor-container">
-    
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-0">{{ przedmiot.nazwa_pl }}</h2>
@@ -57,21 +51,52 @@
     </div>
 
     {% if form.errors %}
-    <div class="alert alert-danger shadow-sm">
-        <h4 class="alert-heading">❌ Bd zapisu!</h4>
-        {{ form.errors }}
-    </div>
+    <div class="alert alert-danger shadow-sm"><h4 class="alert-heading">❌ Bd zapisu!</h4>{{ form.errors }}</div>
     {% endif %}
 
     <form method="post">
         {% csrf_token %}
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">📝</span> 1. Informacje Podstawowe</div>
+            <div class="section-header"><span class="section-icon">📝</span> 1. Informacje Podstawowe i Zarządzanie Celami (O1, O2...)</div>
             <div class="card-body">
                 <div class="row"><div class="col-md-12"><label>Jzyk wykadowy</label>{{ form.jezyk_wykladowy }}</div></div>
-                <label>Cele ksztacenia</label>{{ form.opis_wstepny }}
                 <label>Wymagania wstpne</label>{{ form.wymagania_wstepne }}
+
+                <div style="display:none;">{{ form.opis_wstepny }}</div> <label class="mt-4 fs-5 text-primary">Cele Kształcenia i Metody Weryfikacji (z podziałem na efekty):</label>
+                <div class="row mt-2">
+                    <div class="col-md-4">
+                        <div class="manager-col">
+                            <h5 class="text-center fw-bold text-dark border-bottom pb-2">🧠 WIEDZA (W)</h5>
+                            <div id="cele-list-W" class="mb-3 mt-3"></div>
+                            <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" onclick="window.addCel('W')">➕ Dodaj cel do Wiedzy</button>
+                            <hr>
+                            <label class="small text-muted fw-bold">Metoda weryfikacji dla całej WIEDZY:</label>
+                            <input type="text" id="metoda-W" class="form-control form-control-sm" placeholder="np. Egzamin pisemny" oninput="window.updateMetoda('W', this.value)">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="manager-col">
+                            <h5 class="text-center fw-bold text-dark border-bottom pb-2">🛠️ UMIEJĘTNOŚCI (U)</h5>
+                            <div id="cele-list-U" class="mb-3 mt-3"></div>
+                            <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" onclick="window.addCel('U')">➕ Dodaj cel do Umiej.</button>
+                            <hr>
+                            <label class="small text-muted fw-bold">Metoda weryfikacji dla wszystkich UMIEJĘT.:</label>
+                            <input type="text" id="metoda-U" class="form-control form-control-sm" placeholder="np. Wykonanie ćwiczenia" oninput="window.updateMetoda('U', this.value)">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="manager-col">
+                            <h5 class="text-center fw-bold text-dark border-bottom pb-2">🤝 KOMPETENCJE (K)</h5>
+                            <div id="cele-list-K" class="mb-3 mt-3"></div>
+                            <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" onclick="window.addCel('K')">➕ Dodaj cel do Komp.</button>
+                            <hr>
+                            <label class="small text-muted fw-bold">Metoda weryfikacji dla wszystkich KOMPET.:</label>
+                            <input type="text" id="metoda-K" class="form-control form-control-sm" placeholder="np. Udział w dyskusji" oninput="window.updateMetoda('K', this.value)">
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -80,7 +105,7 @@
             <div class="card-body">
                 <div class="alert alert-primary border-0 d-flex align-items-center">
                     <span class="fs-4 me-3">ℹ️</span>
-                    <div><strong>Instrukcja:</strong> Zaznacz efekty z listy poniej (zdefiniowane przez Prodziekana).</div>
+                    <div><strong>Instrukcja:</strong> Zaznacz efekty z listy poniej (zdefiniowane przez Prodziekana). Powiązania z celami O1, O2 i metodami zostaną wygenerowane automatycznie na podstawie sekcji wyżej.</div>
                 </div>
                 <div class="card mt-3" style="border: 1px solid #cce5ff;">
                     <div class="card-header bg-light fw-bold text-primary">Lista Efektów Kierunkowych (Wybierz z listy)</div>
@@ -125,11 +150,11 @@
         </div>
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">📚</span> 5. Organizacja</div>
+            <div class="section-header"><span class="section-icon">📚</span> 5. Organizacja i Publikacje</div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6"><label>Metody nauczania</label>{{ form.metody_nauczania }}</div>
-                    <div class="col-md-6"><label>Formy oceny</label>{{ form.formy_oceny }}</div>
+                    <div class="col-md-6"><label>Formy oceny (opis ogólny)</label>{{ form.formy_oceny }}</div>
                 </div>
                 <label>Zasady oceniania</label>{{ form.zasady_oceniania }}
                 <div class="row">
@@ -137,7 +162,7 @@
                     <div class="col-md-6"><label>Wymagania obecnoci</label>{{ form.wymagania_obecnosci }}</div>
                 </div>
                 <label>Literatura</label>{{ form.literatura }}
-                <label>Inne informacje</label>{{ form.inne_informacje }}
+                <label>Badania i publikacje</label>{{ form.inne_informacje }}
             </div>
         </div>
 
@@ -148,8 +173,83 @@
                     <button type="submit" class="btn btn-success btn-lg px-5">💾 ZAPISZ DOKUMENT</button></div>
             </div>
         </div>
-        <div style="height: 100px;"></div> 
+        <div style="height: 100px;"></div>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const field = document.getElementById("id_opis_wstepny");
+        let celeList = [];
+        let metodyDict = { W: '', U: '', K: '' };
+
+        function parseData() {
+            const raw = field.value.trim();
+            celeList = [];
+            metodyDict = { W: '', U: '', K: '' };
+            if (!raw) return;
+
+            let mode = 'cele';
+            raw.split('\n').forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                if (line === '---METODY---') { mode = 'metody'; return; }
+
+                let parts = line.split('|');
+                if (mode === 'cele' && parts.length >= 3) {
+                    celeList.push({ kategoria: parts[0].trim(), tresc: parts[2].trim() });
+                } else if (mode === 'metody' && parts.length >= 2) {
+                    metodyDict[parts[0].trim()] = parts[1].trim();
+                }
+            });
+        }
+
+        function saveData() {
+            let lines = [];
+            let counter = 1;
+            celeList.forEach(c => {
+                lines.push(`${c.kategoria} | O${counter} | ${c.tresc}`);
+                counter++;
+            });
+            lines.push('---METODY---');
+            for (const [kat, val] of Object.entries(metodyDict)) {
+                if (val.trim()) lines.push(`${kat} | ${val.trim()}`);
+            }
+            field.value = lines.join('\n');
+        }
+
+        function renderUI() {
+            document.getElementById('cele-list-W').innerHTML = '';
+            document.getElementById('cele-list-U').innerHTML = '';
+            document.getElementById('cele-list-K').innerHTML = '';
+
+            let counter = 1;
+            celeList.forEach((c, index) => {
+                const kod = 'O' + counter++;
+                const html = `
+                    <div class="d-flex align-items-start mb-2 shadow-sm border p-2 bg-white rounded">
+                        <span class="badge bg-secondary me-2 mt-1">${kod}</span>
+                        <textarea class="form-control form-control-sm" rows="2" placeholder="Wpisz cel..." oninput="window.updateCel(${index}, this.value)">${c.tresc}</textarea>
+                        <button type="button" class="btn btn-sm btn-danger ms-2" onclick="window.removeCel(${index})">X</button>
+                    </div>`;
+                document.getElementById('cele-list-' + c.kategoria).insertAdjacentHTML('beforeend', html);
+            });
+
+            document.getElementById('metoda-W').value = metodyDict.W;
+            document.getElementById('metoda-U').value = metodyDict.U;
+            document.getElementById('metoda-K').value = metodyDict.K;
+        }
+
+        // Bindowanie funkcji do window dla onclick z HTML
+        window.addCel = function(kat) { celeList.push({ kategoria: kat, tresc: '' }); saveData(); renderUI(); };
+        window.removeCel = function(index) { celeList.splice(index, 1); saveData(); renderUI(); };
+        window.updateCel = function(index, value) { celeList[index].tresc = value; saveData(); };
+        window.updateMetoda = function(kat, value) { metodyDict[kat] = value; saveData(); };
+
+        parseData();
+        renderUI();
+    });
+</script>
+
 </body>
 </html>
