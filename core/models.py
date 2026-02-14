@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 # --- SOWNIKI ---
 class EfektUczenia(models.Model):
     KATEGORIE = [('W', 'Wiedza'), ('U', 'Umiejtnoci'), ('K', 'Kompetencje')]
@@ -8,6 +9,14 @@ class EfektUczenia(models.Model):
     kategoria = models.CharField(max_length=1, choices=KATEGORIE)
     opis = models.TextField()
     def __str__(self): return self.kod
+
+class Wykladowca(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    tytul = models.CharField(max_length=50, verbose_name="Tytuł/Stopień naukowy", default="dr inż.")
+    katedra = models.CharField(max_length=100, verbose_name="Katedra/Wydział")
+
+    def __str__(self):
+        return f"{self.tytul} {self.user.first_name} {self.user.last_name}"
 
 # NOWO: Sownik Efektów Kierunkowych (z Excela)
 class EfektKierunkowy(models.Model):
@@ -64,6 +73,7 @@ class Przedmiot(models.Model):
     
     # NOWO: Checkboxy do efektów kierunkowych
     efekty_kierunkowe = models.ManyToManyField(EfektKierunkowy, blank=True, verbose_name="Realizowane efekty kierunkowe")
+    koordynatorzy = models.ManyToManyField(Wykladowca, related_name='przypisane_przedmioty', blank=True)
 
     def __str__(self): return self.nazwa_pl
 

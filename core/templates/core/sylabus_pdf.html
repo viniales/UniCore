@@ -102,7 +102,14 @@
         </tr>
         <tr>
             <td class="gray">Koordynatorzy przedmiotów<br><small>(Imię, nazwisko, katedra, adres e-mail)</small></td>
-            <td>Jan Kowalski, jan@pcz.pl</td>
+            <td>
+                {% for k in przedmiot.koordynatorzy.all %}
+                    {{ k.tytul }} {{ k.user.first_name }} {{ k.user.last_name }}, {{ k.katedra }}, {{ k.user.email }}
+                    {% if not forloop.last %}<br>{% endif %}
+                {% empty %}
+                    Brak przypisanych koordynatorów
+                {% endfor %}
+            </td>
         </tr>
     </table>
 

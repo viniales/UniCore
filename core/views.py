@@ -2,15 +2,25 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
+from django.contrib.auth.decorators import login_required  # <--- NOWY IMPORT ZABEZPIECZEÃ…Æ’
 from .models import Przedmiot, SzczegolySylabusa, TrescZajec
 from .forms import SylabusForm
 
 
+@login_required
 def lista_przedmiotow(request):
-    przedmioty = Przedmiot.objects.all()
+    if request.user.is_superuser:
+        # Admin (Superuser) zawsze widzi wszystkie przedmioty
+        przedmioty = Przedmiot.objects.all()
+    else:
+        # WykÅ‚adowca widzi przedmioty, gdzie jest dodany w ManyToManyField 'koordynatorzy'
+        # Szukamy Wykladowcy, ktÃ³rego 'user' to obecnie zalogowany 'request.user'
+        przedmioty = Przedmiot.objects.filter(koordynatorzy__user_id=request.user.id)
+
     return render(request, 'core/lista.html', {'przedmioty': przedmioty})
 
 
+@login_required  # <--- ZABEZPIECZENIE: Tylko dla zalogowanych
 def edycja_sylabusa(request, przedmiot_id):
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, created = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
@@ -31,22 +41,22 @@ def edycja_sylabusa(request, przedmiot_id):
                                                   liczba_godzin=2)
             return redirect('edycja_sylabusa', przedmiot_id=przedmiot.id)
     else:
-        # WCZYTYWANIE DANYCH Z BAZY PO ODŚWIEŻENIU
+        # WCZYTYWANIE DANYCH Z BAZY PO ODÃ…Å¡WIEÃ…Â»ENIU
         tematy_zapisane = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
         harmonogram_text = "\n".join([t.temat for t in tematy_zapisane])
         form = SylabusForm(instance=sylabus, initial={
             'efekty_kierunkowe': przedmiot.efekty_kierunkowe.all(),
-            'harmonogram_raw': harmonogram_text  # To naprawia znikające bloczki w JS
+            'harmonogram_raw': harmonogram_text  # To naprawia znikajÃ„â€¦ce bloczki w JS
         })
 
-    # INTELIGENTNE DEKODOWANIE DLA PRAWEJ KOLUMNY (PODGLĄD W EDYCJI)
+    # INTELIGENTNE DEKODOWANIE DLA PRAWEJ KOLUMNY (PODGLÃ„â€žD W EDYCJI)
     tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
     tematy_zdekodowane = []
     counters = {}
 
     for t in tematy_db:
         tresc = t.temat
-        forma = 'wykład'
+        forma = 'wykÃ…â€šad'
         efekty = ''
         if tresc.startswith('['):
             end_idx = tresc.find(']')
@@ -77,11 +87,12 @@ def edycja_sylabusa(request, przedmiot_id):
     })
 
 
+@login_required  # <--- ZABEZPIECZENIE: Tylko dla zalogowanych
 def pobierz_pdf(request, przedmiot_id):
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, _ = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
 
-    # 1. DEKODOWANIE CELÓW I METOD Z FORMULARZA
+    # 1. DEKODOWANIE CELÃƒâ€œW I METOD Z FORMULARZA
     raw_text = sylabus.opis_wstepny or ""
     cele_lista = []
     metody_dict = {}
@@ -121,7 +132,7 @@ def pobierz_pdf(request, przedmiot_id):
 
     for t in tematy_db:
         tresc = t.temat
-        forma = 'wykład'
+        forma = 'wykÃ…â€šad'
         efekty = ''
         if tresc.startswith('['):
             end_idx = tresc.find(']')

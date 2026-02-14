@@ -3,5 +3,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')), # <--- To przekierowuje ruch do naszej apki
+    path('accounts/', include('django.contrib.auth.urls')),  # <--- TĘ LINIJKĘ DODAJEMY TUTAJ
+    path('', include('core.urls')),
 ]
