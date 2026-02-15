@@ -2,97 +2,435 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Edycja: {{ przedmiot.nazwa_pl }}</title>
+    <title>Edycja Sylabusa: {{ przedmiot.nazwa_pl }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; }
-        .editor-container { max-width: 1100px; margin: 0 auto; }
-        .section-card { border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; border-radius: 8px; }
-        .section-header {
-            background-color: #fff; border-bottom: 2px solid #e9ecef;
-            padding: 15px 20px; font-weight: bold; color: #2c3e50; border-radius: 8px 8px 0 0;
-            display: flex; align-items: center;
-        }
-        .section-icon { margin-right: 10px; font-size: 1.2em; }
-        .card-body { padding: 25px; background-color: #fff; border-radius: 0 0 8px 8px; }
-        label { font-weight: 600; color: #555; margin-top: 15px; margin-bottom: 5px; display: block; }
-        .form-control:focus { box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15); border-color: #86b7fe; }
-        .hours-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; }
-        .hours-row:last-child { border-bottom: none; }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        /* Styl dla checkboxów */
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-light: #eff6ff;
+            --secondary-color: #475569;
+            --border-color: #e2e8f0;
+            --bg-gradient: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+            --card-bg: #ffffff;
+            --success-color: #16a34a;
+            --danger-color: #dc2626;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            font-family: var(--font-family);
+            color: #334155;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Topbar i Header - Elegancki Granatowy Gradient */
+        .page-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 2.5rem 0;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.15);
+            color: white;
+        }
+
+        .subject-title {
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .badge-custom {
+            font-weight: 500;
+            padding: 0.5em 0.8em;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Kontenery i Karty */
+        .editor-container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+
+        .section-card {
+            border: none;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            margin-bottom: 2.5rem;
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Kolorowe Nagłówki Sekcji - WERSJA ZGASZONA/ELEGANCKA */
+        .section-header {
+            padding: 1.2rem 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .header-blue   { background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%); } /* Ten zostawiamy mocny */
+        .header-green  { background: linear-gradient(135deg, #237a57 0%, #5cb892 100%); } /* Zgaszona szałwia/zieleń morka */
+        .header-orange { background: linear-gradient(135deg, #bd5d2a 0%, #e68d60 100%); } /* Zgaszona terakota */
+        .header-purple { background: linear-gradient(135deg, #5b4d82 0%, #8c7eb6 100%); } /* Wrzosowy/Grafitowo-fioletowy */
+        .header-slate  { background: linear-gradient(135deg, #3f4e60 0%, #8393a7 100%); } /* Delikatny grafit */
+
+        .section-icon {
+            margin-right: 12px;
+            color: #ffffff;
+            width: 28px;
+            text-align: center;
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .card-body { padding: 2.5rem; }
+
+        /* Formularze i Inputy */
+        label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        /* Panele Menadżerskie (Cele) */
+        .manager-col {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            height: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtelne paski na górze paneli dla koloru */
+        .manager-col::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+        }
+        .manager-col.border-w::before { background: #3b82f6; }
+        .manager-col.border-u::before { background: #5cb892; } /* dopasowane do nagłówka */
+        .manager-col.border-k::before { background: #e68d60; } /* dopasowane do nagłówka */
+
+        .manager-header {
+            font-size: 1rem;
+            color: #1e293b;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .cel-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .cel-item:focus-within { border-color: var(--primary-color); background: #fff;}
+
+        .cel-badge {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border: 1px solid #bfdbfe;
+            margin-top: 0.2rem;
+            margin-right: 0.75rem;
+            padding: 0.35em 0.65em;
+            font-weight: 600;
+        }
+
+        /* Checkboxy (Matryca) */
+        .checkbox-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #fff;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+        }
+
         #id_efekty_kierunkowe { list-style: none; padding: 0; margin: 0; }
         #id_efekty_kierunkowe li {
-            background: #fff; border-bottom: 1px solid #eee; padding: 12px; display: flex; align-items: flex-start;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.9rem 1.2rem;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
         }
         #id_efekty_kierunkowe li:last-child { border-bottom: none; }
-        #id_efekty_kierunkowe li:hover { background: #f1f8ff; }
-        #id_efekty_kierunkowe label { font-weight: normal; margin: 0; cursor: pointer; font-size: 0.95em; line-height: 1.4; color: #333; }
-        #id_efekty_kierunkowe input[type="checkbox"] { margin-right: 15px; margin-top: 4px; transform: scale(1.3); cursor: pointer; }
+        #id_efekty_kierunkowe li:hover { background: var(--primary-light); }
+        #id_efekty_kierunkowe label {
+            font-weight: 500;
+            margin: 0;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #1e293b;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+        #id_efekty_kierunkowe input[type="checkbox"] {
+            margin-right: 1.2rem;
+            transform: scale(1.3);
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
 
-        .manager-col { background: #fdfdfd; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; }
+        /* Harmonogram */
+        .harm-group {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: #f8fafc;
+            position: relative;
+            border-left: 4px solid #d27346; /* Dopasowany, zgaszony pomarańczowy akcent */
+        }
+
+        .harm-group-delete {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #94a3b8;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            transition: all 0.2s;
+        }
+
+        .harm-group-delete:hover { color: white; background: var(--danger-color); border-color: var(--danger-color); }
+
+        .harm-topic-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .harm-topic-number {
+            width: 30px;
+            text-align: right;
+            margin-right: 12px;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .preview-box {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            height: 100%;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+        }
+
+        .preview-item {
+            padding: 0.85rem 0;
+            border-bottom: 1px dashed #cbd5e1;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+        .preview-item:last-child { border-bottom: none; }
+        .preview-tag {
+            color: #b0572e;
+            font-weight: 600;
+            font-size: 0.8rem;
+            background: #fae8df;
+            padding: 0.2em 0.6em;
+            border-radius: 6px;
+            margin-left: 0.5rem;
+            border: 1px solid #f1c7b3;
+        }
+
+        /* Obciążenie Studenta */
+        .hours-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 0;
+        }
+        .hours-row:last-child { border-bottom: none; }
+        .hours-row span { font-weight: 500; color: #334155; }
+        .hours-row input { text-align: right; width: 100px; font-weight: bold; color: var(--primary-color);}
+
+        /* Przyciski */
+        .btn {
+            font-weight: 600;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .btn-outline-light:hover { color: #1e3a8a; }
+        .btn-outline-primary { color: var(--primary-color); border-color: var(--primary-color); border-width: 2px;}
+        .btn-outline-primary:hover { background-color: var(--primary-light); color: var(--primary-color); }
+        .btn-outline-secondary { border-width: 2px; }
+
+        .btn-action-small { padding: 0.25rem 0.5rem; font-size: 0.875rem; border-radius: 6px; }
+
+        /* Bottom Action Bar */
+        .action-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-color);
+            padding: 1.2rem 0;
+            box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 0 3px #dcfce7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+        }
     </style>
 </head>
-<body class="pb-5">
+<body>
 
-<div class="container mt-5 mb-5 editor-container">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
+    <div class="editor-container d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="fw-bold text-dark mb-0">{{ przedmiot.nazwa_pl }}</h2>
-            <div class="mt-2">
-                <span class="badge bg-primary me-1">{{ przedmiot.kod_przedmiotu }}</span>
-                <span class="badge bg-secondary me-1">ECTS: {{ przedmiot.ects }}</span>
-                <span class="badge bg-info text-dark">Semestr {{ przedmiot.modul.semestr }}</span>
+            <h1 class="subject-title">{{ przedmiot.nazwa_pl }}</h1>
+            <div class="d-flex gap-2 align-items-center mt-3">
+                <span class="badge-custom"><i class="fa-solid fa-hashtag me-1 opacity-75"></i> {{ przedmiot.kod_przedmiotu }}</span>
+                <span class="badge-custom"><i class="fa-solid fa-star me-1 text-warning"></i> ECTS: {{ przedmiot.ects }}</span>
+                <span class="badge-custom"><i class="fa-regular fa-calendar me-1 opacity-75"></i> Semestr {{ przedmiot.modul.semestr }}</span>
             </div>
         </div>
-        <a href="/" class="btn btn-outline-dark">⬅ Wró do listy</a>
+        <a href="/" class="btn btn-outline-light"><i class="fa-solid fa-arrow-left me-2"></i> Powrót do kokpitu</a>
     </div>
+</div>
+
+<div class="container editor-container mb-5">
 
     {% if form.errors %}
-    <div class="alert alert-danger shadow-sm"><h4 class="alert-heading">❌ Bd zapisu!</h4>{{ form.errors }}</div>
+    <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 mb-4 bg-white">
+        <h5 class="alert-heading fw-bold mb-1 text-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>Wystąpił błąd podczas zapisu</h5>
+        <div class="small text-muted">{{ form.errors }}</div>
+    </div>
     {% endif %}
 
     <form method="post">
         {% csrf_token %}
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">📝</span> 1. Informacje Podstawowe i Cele Przedmiotu</div>
+            <div class="section-header header-blue">
+                <span class="section-icon"><i class="fa-solid fa-circle-info"></i></span>
+                1. Informacje Podstawowe i Cele Przedmiotu
+            </div>
             <div class="card-body">
-                <div class="row"><div class="col-md-12"><label>Jzyk wykadowy</label>{{ form.jezyk_wykladowy }}</div></div>
-                <label>Wymagania wstpne</label>{{ form.wymagania_wstepne }}
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label>Język wykładowy</label>
+                        {{ form.jezyk_wykladowy }}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label>Wymagania wstępne</label>
+                    {{ form.wymagania_wstepne }}
+                </div>
 
                 <div style="display:none;">{{ form.opis_wstepny }}</div>
 
-                <label class="mt-4 fs-5 text-primary">Cele Kształcenia i Metody Weryfikacji (z podziałem na efekty):</label>
-                <div class="row mt-2">
+                <div class="d-flex align-items-center mb-4 mt-5">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-bullseye me-2 text-primary"></i> Cele Kształcenia i Metody Weryfikacji</h5>
+                    <span class="ms-3 text-muted small">(Podział na kategorie)</span>
+                </div>
+
+                <div class="row g-4 mt-2">
                     <div class="col-md-4">
-                        <div class="manager-col">
-                            <h5 class="text-center fw-bold text-dark border-bottom pb-2">🧠 WIEDZA (W)</h5>
-                            <div id="cele-list-W" class="mb-3 mt-3"></div>
-                            <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" onclick="window.addCel('W')">➕ Dodaj cel do Wiedzy</button>
-                            <hr>
-                            <label class="small text-muted fw-bold">Metoda weryfikacji dla całej WIEDZY:</label>
+                        <div class="manager-col border-w">
+                            <h6 class="manager-header fw-bold"><i class="fa-solid fa-brain text-primary fs-5"></i><br>Wiedza (W)</h6>
+                            <div id="cele-list-W" class="mb-3"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="window.addCel('W')"><i class="fa-solid fa-plus me-1"></i> Dodaj cel</button>
+                            <hr class="my-4 text-muted">
+                            <label class="small fw-bold text-secondary mb-2">Metoda weryfikacji (Wiedza):</label>
                             <input type="text" id="metoda-W" class="form-control form-control-sm" placeholder="np. Egzamin pisemny" oninput="window.updateMetoda('W', this.value)">
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="manager-col">
-                            <h5 class="text-center fw-bold text-dark border-bottom pb-2">🛠️ UMIEJĘTNOŚCI (U)</h5>
-                            <div id="cele-list-U" class="mb-3 mt-3"></div>
-                            <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" onclick="window.addCel('U')">➕ Dodaj cel do Umiej.</button>
-                            <hr>
-                            <label class="small text-muted fw-bold">Metoda weryfikacji dla wszystkich UMIEJĘT.:</label>
+                        <div class="manager-col border-u">
+                            <h6 class="manager-header fw-bold"><i class="fa-solid fa-wrench fs-5" style="color: #237a57;"></i><br>Umiejętności (U)</h6>
+                            <div id="cele-list-U" class="mb-3"></div>
+                            <button type="button" class="btn btn-sm w-100" style="color: #237a57; border-color: #237a57; border-width: 2px;" onclick="window.addCel('U')" onmouseover="this.style.backgroundColor='#ecfdf5'" onmouseout="this.style.backgroundColor='transparent'"><i class="fa-solid fa-plus me-1"></i> Dodaj cel</button>
+                            <hr class="my-4 text-muted">
+                            <label class="small fw-bold text-secondary mb-2">Metoda weryfikacji (Umiejętności):</label>
                             <input type="text" id="metoda-U" class="form-control form-control-sm" placeholder="np. Wykonanie ćwiczenia" oninput="window.updateMetoda('U', this.value)">
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="manager-col">
-                            <h5 class="text-center fw-bold text-dark border-bottom pb-2">🤝 KOMPETENCJE (K)</h5>
-                            <div id="cele-list-K" class="mb-3 mt-3"></div>
-                            <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" onclick="window.addCel('K')">➕ Dodaj cel do Komp.</button>
-                            <hr>
-                            <label class="small text-muted fw-bold">Metoda weryfikacji dla wszystkich KOMPET.:</label>
+                        <div class="manager-col border-k">
+                            <h6 class="manager-header fw-bold"><i class="fa-solid fa-users fs-5" style="color: #bd5d2a;"></i><br>Kompetencje (K)</h6>
+                            <div id="cele-list-K" class="mb-3"></div>
+                            <button type="button" class="btn btn-sm w-100" style="color: #bd5d2a; border-color: #bd5d2a; border-width: 2px;" onclick="window.addCel('K')" onmouseover="this.style.backgroundColor='#fff7ed'" onmouseout="this.style.backgroundColor='transparent'"><i class="fa-solid fa-plus me-1"></i> Dodaj cel</button>
+                            <hr class="my-4 text-muted">
+                            <label class="small fw-bold text-secondary mb-2">Metoda weryfikacji (Kompetencje):</label>
                             <input type="text" id="metoda-K" class="form-control form-control-sm" placeholder="np. Udział w dyskusji" oninput="window.updateMetoda('K', this.value)">
                         </div>
                     </div>
@@ -101,48 +439,67 @@
         </div>
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">🎯</span> 2. Efekty Uczenia si (Matryca)</div>
+            <div class="section-header header-green">
+                <span class="section-icon"><i class="fa-solid fa-table-cells"></i></span>
+                2. Efekty Uczenia się (Matryca)
+            </div>
             <div class="card-body">
-                <div class="alert alert-primary border-0 d-flex align-items-center">
-                    <span class="fs-4 me-3">ℹ️</span>
-                    <div><strong>Instrukcja:</strong> Zaznacz efekty z listy poniżej. Zostaną one automatycznie powiązane z celami dodanymi wyżej.</div>
+                <div class="d-flex p-3 rounded mb-4" style="background-color: #f1f8f5; border: 1px solid #bce3d1;">
+                    <div class="me-3 mt-1" style="color: #237a57;"><i class="fa-solid fa-circle-info fs-5"></i></div>
+                    <div class="small text-dark"><strong>Instrukcja:</strong> Zaznacz efekty kierunkowe z listy poniżej. Zostaną one automatycznie powiązane z celami dodanymi w poprzedniej sekcji podczas generowania dokumentu.</div>
                 </div>
-                <div class="card mt-3" style="border: 1px solid #cce5ff;">
-                    <div class="card-header bg-light fw-bold text-primary">Lista Efektów Kierunkowych (Wybierz z listy)</div>
-                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        {{ form.efekty_kierunkowe }}
-                    </div>
+
+                <label class="mb-2">Dostępne Efekty Kierunkowe</label>
+                <div class="checkbox-container">
+                    {{ form.efekty_kierunkowe }}
                 </div>
+
                 <div style="display:none;">{{ form.efekty_wiedza }}{{ form.efekty_umiejetnosci }}{{ form.efekty_kompetencje }}{{ form.mapowanie_efektow }}</div>
             </div>
         </div>
 
-        <div class="card section-card border-primary" style="border: 1px solid #cfe2ff;">
-            <div class="section-header bg-primary text-white"><span class="section-icon">⚡</span> 3. Harmonogram (Smart Paste)</div>
+        <div class="card section-card">
+            <div class="section-header header-orange">
+                <span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                3. Harmonogram Realizacji Zajęć
+            </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-7 border-end pe-4">
+                <div class="row g-5">
+                    <div class="col-lg-7">
                         <div style="display:none;">{{ form.harmonogram_raw }}</div>
-                        <label class="mt-0 fw-bold text-primary mb-3">Zarządzaj blokami i tematami:</label>
+                        <div class="d-flex justify-content-between align-items-end mb-3">
+                            <label class="mt-0 mb-0 text-dark">Zarządzanie blokami tematycznymi</label>
+                        </div>
+
                         <div id="harmonogram-ui-container"></div>
-                        <button type="button" class="btn btn-outline-primary btn-sm mt-3 fw-bold w-100" onclick="window.addHarmGroup()">➕ Dodaj kolejną grupę zajęć</button>
+
+                        <button type="button" class="btn btn-outline-secondary text-dark w-100 mt-2 border-dashed" style="border-style: dashed;" onclick="window.addHarmGroup()">
+                            <i class="fa-solid fa-plus me-2"></i>Dodaj nową grupę zajęć (np. kolejny wykład)
+                        </button>
                     </div>
 
-                    <div class="col-md-5 ps-4">
-                        <label class="mt-0 fw-bold text-success mb-3">Obecnie zapisane w bazie:</label>
-                        <div class="bg-light p-3 rounded border" style="max-height: 500px; overflow-y: auto;">
+                    <div class="col-lg-5">
+                        <label class="mt-0 mb-3 text-dark">Podgląd struktury w bazie</label>
+                        <div class="preview-box shadow-sm">
                             {% if tematy %}
                                 <ul class="list-unstyled mb-0">
                                 {% for t in tematy %}
-                                    <li class="py-1 border-bottom small text-dark">
-                                        <strong class="text-uppercase">{{ t.forma }} {{ t.lp }}.</strong>
-                                        {{ t.tresc }}
-                                        {% if t.efekty %}<span class="text-primary fw-bold">[{{ t.efekty }}]</span>{% endif %}
+                                    <li class="preview-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <span class="text-uppercase fw-bold text-secondary me-2 small">{{ t.forma }} {{ t.lp }}.</span>
+                                                {{ t.tresc }}
+                                            </div>
+                                            {% if t.efekty %}<span class="preview-tag">{{ t.efekty }}</span>{% endif %}
+                                        </div>
                                     </li>
                                 {% endfor %}
                                 </ul>
                             {% else %}
-                                <div class="text-muted text-center py-4 small">Brak dodanych zajęć. Zapisz dokument, aby odświeżyć podgląd.</div>
+                                <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted text-center py-5">
+                                    <i class="fa-regular fa-folder-open fs-1 mb-3 opacity-50"></i>
+                                    <span class="small">Brak dodanych zajęć.<br>Wprowadź tematy i zapisz dokument, aby odświeżyć podgląd.</span>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -151,52 +508,90 @@
         </div>
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">🕒</span> 4. Obcienie studenta</div>
+            <div class="section-header header-purple">
+                <span class="section-icon"><i class="fa-solid fa-clock"></i></span>
+                4. Nakład Pracy Studenta (Godziny)
+            </div>
             <div class="card-body">
-                <div class="row justify-content-center"><div class="col-md-8">
-                    <div class="hours-row"><span>Przygotowanie do wicze:</span> {{ form.pw_przygotowanie_cw }}</div>
-                    <div class="hours-row"><span>Sprawozdania:</span> {{ form.pw_sprawozdania }}</div>
-                    <div class="hours-row"><span>Projekt:</span> {{ form.pw_projekt }}</div>
-                    <div class="hours-row"><span>Nauka do wykadu:</span> {{ form.pw_wyklad }}</div>
-                    <div class="hours-row"><span>Egzamin:</span> {{ form.pw_egzamin }}</div>
-                    <div class="hours-row"><span>Literatura:</span> {{ form.pw_literatura }}</div>
-                </div></div>
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-7">
+                        <div class="p-4 bg-white border rounded shadow-sm">
+                            <div class="hours-row"><span><i class="fa-solid fa-flask text-muted me-2"></i>Przygotowanie do ćwiczeń</span> {{ form.pw_przygotowanie_cw }}</div>
+                            <div class="hours-row"><span><i class="fa-solid fa-file-signature text-muted me-2"></i>Sporządzanie sprawozdań</span> {{ form.pw_sprawozdania }}</div>
+                            <div class="hours-row"><span><i class="fa-solid fa-laptop-code text-muted me-2"></i>Przygotowanie projektu</span> {{ form.pw_projekt }}</div>
+                            <div class="hours-row"><span><i class="fa-solid fa-book-open-reader text-muted me-2"></i>Praca z literaturą / Wykład</span> {{ form.pw_wyklad }}</div>
+                            <div class="hours-row"><span><i class="fa-solid fa-graduation-cap text-muted me-2"></i>Przygotowanie do egzaminu</span> {{ form.pw_egzamin }}</div>
+                            <div class="hours-row border-0 pb-0"><span><i class="fa-solid fa-folder-plus text-muted me-2"></i>Inne (Literatura uzupełn.)</span> {{ form.pw_literatura }}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="card section-card">
-            <div class="section-header"><span class="section-icon">📚</span> 5. Organizacja i Publikacje</div>
+            <div class="section-header header-slate">
+                <span class="section-icon"><i class="fa-solid fa-book-open"></i></span>
+                5. Metodyka, Organizacja i Literatura
+            </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6"><label>Metody nauczania</label>{{ form.metody_nauczania }}</div>
-                    <div class="col-md-6"><label>Formy oceny (opis ogólny)</label>{{ form.formy_oceny }}</div>
+                <div class="row g-4 mb-2">
+                    <div class="col-md-6">
+                        <label>Metody nauczania</label>
+                        {{ form.metody_nauczania }}
+                    </div>
+                    <div class="col-md-6">
+                        <label>Formy oceny (opis ogólny)</label>
+                        {{ form.formy_oceny }}
+                    </div>
                 </div>
-                <label>Zasady oceniania</label>{{ form.zasady_oceniania }}
-                <div class="row">
-                    <div class="col-md-6"><label>Odrabianie zaj</label>{{ form.odrabianie_zajec }}</div>
-                    <div class="col-md-6"><label>Wymagania obecnoci</label>{{ form.wymagania_obecnosci }}</div>
+
+                <label>Szczegółowe zasady oceniania</label>
+                {{ form.zasady_oceniania }}
+
+                <div class="row g-4 mb-2">
+                    <div class="col-md-6">
+                        <label>Zasady odrabiania zajęć</label>
+                        {{ form.odrabianie_zajec }}
+                    </div>
+                    <div class="col-md-6">
+                        <label>Wymagania dotyczące obecności</label>
+                        {{ form.wymagania_obecnosci }}
+                    </div>
                 </div>
-                <label>Literatura</label>{{ form.literatura }}
-                <label>Badania i publikacje</label>{{ form.inne_informacje }}
+
+                <div class="row g-4 mt-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-book text-primary me-2"></i>Wykaz Literatury</h6>
+                        {{ form.literatura }}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-microscope text-primary me-2"></i>Związek z badaniami naukowymi</h6>
+                        {{ form.inne_informacje }}
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="fixed-bottom bg-white border-top p-3 shadow-lg" style="z-index: 1000;">
-            <div class="editor-container d-flex justify-content-between align-items-center">
-                <span class="text-success small fw-bold">✅ Edytor gotowy.</span>
-                <div><a href="/" class="btn btn-outline-secondary me-2">Anuluj</a><a href="/pdf/{{ przedmiot.id }}/" class="btn btn-danger btn-lg me-3" target="_blank">📄 Pobierz PDF</a>
-                    <button type="submit" class="btn btn-success btn-lg px-5">💾 ZAPISZ DOKUMENT</button></div>
+        <div class="fixed-bottom action-bar z-3">
+            <div class="container editor-container d-flex justify-content-between align-items-center">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Tryb edycji aktywny</span>
+                </div>
+                <div class="d-flex gap-3">
+                    <a href="/" class="btn btn-outline-secondary px-4">Anuluj zmiany</a>
+                    <a href="/pdf/{{ przedmiot.id }}/" class="btn btn-outline-danger px-4" target="_blank"><i class="fa-solid fa-file-pdf me-2"></i>Podgląd PDF</a>
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm"><i class="fa-solid fa-floppy-disk me-2"></i>Zapisz Sylabus</button>
+                </div>
             </div>
         </div>
-        <div style="height: 100px;"></div>
+
+        <div style="height: 120px;"></div>
     </form>
 </div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // ==========================================
-        // 1. ZARZĄDZANIE CELAMI I METODAMI WERYFIKACJI
-        // ==========================================
         const fieldCele = document.getElementById("id_opis_wstepny");
         let celeList = [];
         let metodyDict = { W: '', U: '', K: '' };
@@ -245,17 +640,21 @@
             celeList.forEach((c, index) => {
                 const kod = 'O' + counter++;
                 const html = `
-                    <div class="d-flex align-items-start mb-2 shadow-sm border p-2 bg-white rounded">
-                        <span class="badge bg-secondary me-2 mt-1">${kod}</span>
-                        <textarea class="form-control form-control-sm" rows="2" placeholder="Wpisz cel..." oninput="window.updateCel(${index}, this.value)">${c.tresc}</textarea>
-                        <button type="button" class="btn btn-sm btn-danger ms-2" onclick="window.removeCel(${index})">X</button>
+                    <div class="cel-item">
+                        <span class="badge rounded-pill cel-badge">${kod}</span>
+                        <div class="flex-grow-1">
+                            <textarea class="form-control form-control-sm border-0 bg-transparent p-0" style="resize: none;" rows="2" placeholder="Wpisz treść celu..." oninput="window.updateCel(${index}, this.value)">${c.tresc}</textarea>
+                        </div>
+                        <button type="button" class="btn btn-action-small text-muted border-0 ms-1" onclick="window.removeCel(${index})" title="Usuń cel">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>`;
                 document.getElementById('cele-list-' + c.kategoria).insertAdjacentHTML('beforeend', html);
             });
 
-            document.getElementById('metoda-W').value = metodyDict.W;
-            document.getElementById('metoda-U').value = metodyDict.U;
-            document.getElementById('metoda-K').value = metodyDict.K;
+            document.getElementById('metoda-W').value = metodyDict.W || '';
+            document.getElementById('metoda-U').value = metodyDict.U || '';
+            document.getElementById('metoda-K').value = metodyDict.K || '';
         }
 
         window.addCel = function(kat) { celeList.push({ kategoria: kat, tresc: '' }); saveCeleData(); renderCeleUI(); };
@@ -266,10 +665,6 @@
         parseCeleData();
         renderCeleUI();
 
-
-        // ==========================================
-        // 2. NOWY HARMONOGRAM Z DYNAMICZNĄ LISTĄ
-        // ==========================================
         const fieldHarm = document.getElementById("id_harmonogram_raw");
         const harmContainer = document.getElementById("harmonogram-ui-container");
         let harmGroups = [];
@@ -304,7 +699,6 @@
                 }
                 currentGroup.tematy.push(tresc);
             });
-            // Dbamy o to, by każda grupa miała co najmniej jedno (nawet puste) pole do wpisywania
             harmGroups.forEach(g => { if (g.tematy.length === 0) g.tematy.push(''); });
         }
 
@@ -325,51 +719,51 @@
 
             harmGroups.forEach((g, i) => {
                 html += `
-                <div class="border border-secondary rounded p-3 mb-3 bg-white shadow-sm position-relative">
-                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" onclick="window.removeHarm(${i})">Usuń grupę</button>
+                <div class="harm-group shadow-sm">
+                    <button type="button" class="harm-group-delete" onclick="window.removeHarm(${i})" title="Usuń cały blok">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
 
-                    <div class="row mb-3 pe-5">
-                        <div class="col-md-6">
-                            <label class="small fw-bold">Rodzaj zajęć</label>
-                            <select class="form-select form-select-sm border-dark" onchange="window.updateHarm(${i}, 'forma', this.value)">`;
+                    <div class="row mb-4 pe-4">
+                        <div class="col-md-5">
+                            <label class="small mt-0 mb-1 text-muted">Rodzaj zajęć</label>
+                            <select class="form-select form-select-sm" onchange="window.updateHarm(${i}, 'forma', this.value)">`;
                 opcje.forEach(o => { html += `<option value="${o}" ${g.forma === o ? 'selected' : ''}>${o}</option>`; });
                 html += `   </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="small fw-bold">Efekty (np. W1, K1)</label>
-                            <input type="text" class="form-control form-control-sm border-dark" placeholder="W1, K1" value="${g.efekty}" oninput="window.updateHarm(${i}, 'efekty', this.value)">
+                        <div class="col-md-7">
+                            <label class="small mt-0 mb-1 text-muted">Powiązane efekty (np. W1, K1)</label>
+                            <input type="text" class="form-control form-control-sm" placeholder="Opcjonalne kody efektów" value="${g.efekty}" oninput="window.updateHarm(${i}, 'efekty', this.value)">
                         </div>
                     </div>
 
-                    <label class="small fw-bold mb-2 text-primary">Wpisz temat i naciśnij ENTER, aby przejść do kolejnego:</label>
+                    <div class="mb-2 text-secondary small fw-bold"><i class="fa-solid fa-list-ul me-1"></i> Tematy realizowane w ramach bloku:</div>
                     <div id="tematy-list-${i}">`;
 
-                // Generowanie inputów dla tematów
                 g.tematy.forEach((t, tIdx) => {
                     html += `
-                    <div class="d-flex mb-1 align-items-center">
-                        <span class="fw-bold text-secondary text-end me-2" style="width: 25px;">${tIdx + 1}.</span>
-                        <input type="text" class="form-control form-control-sm border-dark harm-input-${i}" placeholder="Wpisz temat..." value="${t}"
+                    <div class="harm-topic-row">
+                        <span class="harm-topic-number">${tIdx + 1}.</span>
+                        <input type="text" class="form-control form-control-sm harm-input-${i}" placeholder="Wprowadź temat zajęć i naciśnij Enter..." value="${t}"
                                oninput="window.updateHarmTemat(${i}, ${tIdx}, this.value)"
                                onkeydown="window.handleHarmKey(event, ${i}, ${tIdx})">
-                        <button type="button" class="btn btn-sm btn-outline-danger ms-1" tabindex="-1" onclick="window.removeHarmTemat(${i}, ${tIdx})">✖</button>
+                        <button type="button" class="btn btn-action-small text-muted ms-1 border-0" tabindex="-1" onclick="window.removeHarmTemat(${i}, ${tIdx})" title="Usuń temat">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>`;
                 });
 
                 html += `
                     </div>
-                    <button type="button" class="btn btn-sm btn-light border border-secondary text-secondary mt-2 w-100" onclick="window.addHarmTemat(${i})">➕ Dodaj kolejny temat (ręcznie)</button>
                 </div>`;
             });
             harmContainer.innerHTML = html;
         }
 
-        // Akcje dla grup
         window.addHarmGroup = function() { harmGroups.push({forma: 'laboratorium', efekty: '', tematy: ['']}); saveHarmData(); renderHarmUI(); };
         window.removeHarm = function(i) { harmGroups.splice(i, 1); saveHarmData(); renderHarmUI(); };
         window.updateHarm = function(i, pole, val) { harmGroups[i][pole] = val; saveHarmData(); };
 
-        // Akcje dla poszczególnych tematów w grupie
         window.updateHarmTemat = function(gIdx, tIdx, val) {
             harmGroups[gIdx].tematy[tIdx] = val;
             saveHarmData();
@@ -386,7 +780,6 @@
             harmGroups[gIdx].tematy.push('');
             saveHarmData();
             renderHarmUI();
-            // Przenieś fokus na nowy element
             setTimeout(() => {
                 const inputs = document.querySelectorAll(`.harm-input-${gIdx}`);
                 if (inputs.length > 0) inputs[inputs.length - 1].focus();
@@ -394,14 +787,11 @@
         };
 
         window.handleHarmKey = function(e, gIdx, tIdx) {
-            // Reaguj tylko na Enter
             if (e.key === 'Enter') {
-                e.preventDefault(); // Zapobiega wysłaniu formularza
-                // Jeżeli to jest ostatni element - dodaj nowy
+                e.preventDefault();
                 if (tIdx === harmGroups[gIdx].tematy.length - 1) {
                     window.addHarmTemat(gIdx);
                 } else {
-                    // Jak nie, przenieś fokus na następny
                     const inputs = document.querySelectorAll(`.harm-input-${gIdx}`);
                     if (inputs[tIdx + 1]) inputs[tIdx + 1].focus();
                 }
