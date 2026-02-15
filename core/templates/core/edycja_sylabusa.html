@@ -357,6 +357,11 @@
         <div>
             <h1 class="subject-title">{{ przedmiot.nazwa_pl }}</h1>
             <div class="d-flex gap-2 align-items-center mt-3">
+                <span class="badge-custom" style="background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.6); font-weight: 600;">
+                    <i class="fa-solid fa-graduation-cap me-1 opacity-100"></i>
+                    {% if przedmiot.modul.kierunek %}{{ przedmiot.modul.kierunek }}{% else %}Brak kierunku{% endif %}
+                </span>
+
                 <span class="badge-custom"><i class="fa-solid fa-hashtag me-1 opacity-75"></i> {{ przedmiot.kod_przedmiotu }}</span>
                 <span class="badge-custom"><i class="fa-solid fa-star me-1 text-warning"></i> ECTS: {{ przedmiot.ects }}</span>
                 <span class="badge-custom"><i class="fa-regular fa-calendar me-1 opacity-75"></i> Semestr {{ przedmiot.modul.semestr }}</span>
