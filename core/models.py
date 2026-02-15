@@ -71,7 +71,7 @@ class Przedmiot(models.Model):
     godz_egzamin = models.IntegerField(default=0, verbose_name="Godziny na egzamin")
 
     # RELACJE
-    efekty = models.ManyToManyField(EfektUczenia, blank=True, related_name='przedmioty')
+
     
     # NOWO: Checkboxy do efektÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³w kierunkowych
     
