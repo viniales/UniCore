@@ -12,14 +12,16 @@ class EfektUczenia(models.Model):
 
 class Wykladowca(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    tytul = models.CharField(max_length=50, verbose_name="Tytuł/Stopień naukowy", default="dr inż.")
-    katedra = models.CharField(max_length=100, verbose_name="Katedra/Wydział")
+    tytul = models.CharField(max_length=50, verbose_name="TytuÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡/StopieÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ naukowy", default="dr inÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¼.")
+    katedra = models.CharField(max_length=100, verbose_name="Katedra/WydziaÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡")
 
     def __str__(self):
         return f"{self.tytul} {self.user.first_name} {self.user.last_name}"
 
-# NOWO: Sownik Efektów Kierunkowych (z Excela)
+# NOWO: Sownik EfektÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³w Kierunkowych (z Excela)
 class EfektKierunkowy(models.Model):
+    
+    
     TYPY = [('W', 'Wiedza'), ('U', 'Umiejtnoci'), ('K', 'Kompetencje')]
     kod = models.CharField(max_length=20, unique=True, verbose_name="Kod efektu (np. K_W01)")
     opis = models.TextField(verbose_name="Tre efektu")
@@ -71,8 +73,9 @@ class Przedmiot(models.Model):
     # RELACJE
     efekty = models.ManyToManyField(EfektUczenia, blank=True, related_name='przedmioty')
     
-    # NOWO: Checkboxy do efektów kierunkowych
-    efekty_kierunkowe = models.ManyToManyField(EfektKierunkowy, blank=True, verbose_name="Realizowane efekty kierunkowe")
+    # NOWO: Checkboxy do efektÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³w kierunkowych
+    
+    efekty_kierunkowe = models.ManyToManyField(EfektKierunkowy, blank=True, verbose_name='Realizowane efekty kierunkowe')
     koordynatorzy = models.ManyToManyField(Wykladowca, related_name='przypisane_przedmioty', blank=True)
 
     def __str__(self): return self.nazwa_pl
@@ -85,7 +88,7 @@ class SzczegolySylabusa(models.Model):
     efekty_umiejetnosci = models.TextField(verbose_name="Efekty - Umiejtnoci", default="-", blank=True)
     efekty_kompetencje = models.TextField(verbose_name="Efekty - Kompetencje", default="-", blank=True)
     
-    mapowanie_efektow = models.TextField(verbose_name="Relacje efektów (tekst)", blank=True, default="")
+    mapowanie_efektow = models.TextField(verbose_name="Relacje efektÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³w (tekst)", blank=True, default="")
 
     metody_nauczania = models.TextField(verbose_name="Metody nauczania", blank=True, default="")
     formy_oceny = models.TextField(verbose_name="Metody weryfikacji wiedzy", blank=True, default="")
@@ -111,3 +114,14 @@ class TrescZajec(models.Model):
     numer_tematu = models.IntegerField()
     temat = models.TextField()
     liczba_godzin = models.IntegerField()
+
+class EfektPrzedmiotowy(models.Model):
+    KATEGORIE = [('W', 'Wiedza'), ('U', 'Umiejtnoci'), ('K', 'Kompetencje')]
+    przedmiot = models.ForeignKey(Przedmiot, on_delete=models.CASCADE, related_name='efekty_przedmiotowe')
+    kategoria = models.CharField(max_length=1, choices=KATEGORIE)
+    kod_efektu_przedmiotowego = models.CharField(max_length=10, verbose_name="Kod (np. EU1)")
+    opis = models.TextField()
+    powiazany_efekt_kierunkowy = models.ForeignKey(EfektKierunkowy, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.przedmiot.nazwa_pl} - {self.kod_efektu_przedmiotowego}"

@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
-from django.contrib.auth.decorators import login_required  # <--- NOWY IMPORT ZABEZPIECZEÃ…Æ’
+from django.contrib.auth.decorators import login_required  # <--- NOWY IMPORT ZABEZPIECZEÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢
 from .models import Przedmiot, SzczegolySylabusa, TrescZajec
 from .forms import SylabusForm
 
@@ -13,8 +13,8 @@ def lista_przedmiotow(request):
         # Admin (Superuser) zawsze widzi wszystkie przedmioty
         przedmioty = Przedmiot.objects.all()
     else:
-        # WykÅ‚adowca widzi przedmioty, gdzie jest dodany w ManyToManyField 'koordynatorzy'
-        # Szukamy Wykladowcy, ktÃ³rego 'user' to obecnie zalogowany 'request.user'
+        # WykÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡adowca widzi przedmioty, gdzie jest dodany w ManyToManyField 'koordynatorzy'
+        # Szukamy Wykladowcy, ktÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³rego 'user' to obecnie zalogowany 'request.user'
         przedmioty = Przedmiot.objects.filter(koordynatorzy__user_id=request.user.id)
 
     return render(request, 'core/lista.html', {'przedmioty': przedmioty})
@@ -41,22 +41,24 @@ def edycja_sylabusa(request, przedmiot_id):
                                                   liczba_godzin=2)
             return redirect('edycja_sylabusa', przedmiot_id=przedmiot.id)
     else:
-        # WCZYTYWANIE DANYCH Z BAZY PO ODÃ…Å¡WIEÃ…Â»ENIU
+        # WCZYTYWANIE DANYCH Z BAZY PO ODÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡WIEÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ENIU
         tematy_zapisane = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
         harmonogram_text = "\n".join([t.temat for t in tematy_zapisane])
         form = SylabusForm(instance=sylabus, initial={
-            'efekty_kierunkowe': przedmiot.efekty_kierunkowe.all(),
-            'harmonogram_raw': harmonogram_text  # To naprawia znikajÃ„â€¦ce bloczki w JS
+            "efekty_kierunkowe": przedmiot.efekty_kierunkowe.all(),
+            "harmonogram_raw": harmonogram_text
         })
+        # Ograniczamy list wyboru tylko do efektÃ³w tego przedmiotu:
+        form.fields["efekty_kierunkowe"].queryset = przedmiot.efekty_kierunkowe.all()
 
-    # INTELIGENTNE DEKODOWANIE DLA PRAWEJ KOLUMNY (PODGLÃ„â€žD W EDYCJI)
+    # INTELIGENTNE DEKODOWANIE DLA PRAWEJ KOLUMNY (PODGLÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾D W EDYCJI)
     tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
     tematy_zdekodowane = []
     counters = {}
 
     for t in tematy_db:
         tresc = t.temat
-        forma = 'wykÃ…â€šad'
+        forma = 'wykÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ad'
         efekty = ''
         if tresc.startswith('['):
             end_idx = tresc.find(']')
@@ -92,7 +94,7 @@ def pobierz_pdf(request, przedmiot_id):
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, _ = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
 
-    # 1. DEKODOWANIE CELÃƒâ€œW I METOD Z FORMULARZA
+    # 1. DEKODOWANIE CELÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“W I METOD Z FORMULARZA
     raw_text = sylabus.opis_wstepny or ""
     cele_lista = []
     metody_dict = {}
@@ -132,7 +134,7 @@ def pobierz_pdf(request, przedmiot_id):
 
     for t in tematy_db:
         tresc = t.temat
-        forma = 'wykÃ…â€šad'
+        forma = 'wykÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ad'
         efekty = ''
         if tresc.startswith('['):
             end_idx = tresc.find(']')

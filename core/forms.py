@@ -13,7 +13,7 @@ class SylabusForm(forms.ModelForm):
     )
 
     harmonogram_raw = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control border-primary', 'rows': 5, 'placeholder': 'Wklej list tematów...'}),
+        widget=forms.Textarea(attrs={'class': 'form-control border-primary', 'rows': 5, 'placeholder': 'Wklej list tematÃ³w...'}),
         required=False, label="SMART PASTE"
     )
 
