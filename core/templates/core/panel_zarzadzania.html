@@ -1,174 +1,62 @@
-﻿<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Zarzdzanie Kierunkami</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background-color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
-        .topbar { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 1.5rem 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-        .semester-card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 2.5rem; overflow: hidden; }
-        .semester-header { background-color: #ffffff; border-bottom: 2px solid #e2e8f0; padding: 1.25rem 1.5rem; }
-        .ects-badge { font-size: 1.1rem; padding: 0.6rem 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .bg-success-custom { background-color: #16a34a !important; color: white; }
-        .bg-danger-custom { background-color: #dc2626 !important; color: white; }
-        .table { margin-bottom: 0; font-size: 0.95rem; }
-        .table th { background-color: #f8fafc; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; padding: 1rem; }
-        .table td { padding: 1rem; vertical-align: middle; color: #334155; }
-        .coordinator-tag { background: #e2e8f0; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-right: 0.4rem; display: inline-block; margin-bottom: 0.2rem;}
-        .kierunek-header { border-bottom: 3px solid #3b82f6; padding-bottom: 1rem; margin-bottom: 2rem; margin-top: 2rem; }
-    </style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="mb-1 fw-bold"><i class="fa-solid fa-building-columns me-2 text-primary"></i>Panel Prodziekana / Koordynatora Kierunku</h3>
-            <div class="text-white-50 small">Zarzdzanie planem studiów i weryfikacja limitów ECTS</div>
+            <h2 class="fw-bold text-primary mb-0">{{ tryb }}</h2>
+            <p class="text-muted small">Lista przedmiotów, do których masz przypisane uprawnienia.</p>
         </div>
-        <div class="d-flex align-items-center">
-            <span class="me-4"><i class="fa-solid fa-user-shield me-2"></i>{{ user.username }} (Admin)</span>
-            <a href="/admin/core/przedmiot/add/" class="btn btn-outline-light btn-sm me-2"><i class="fa-solid fa-plus me-1"></i>Dodaj przedmiot</a>
-            <a href="/accounts/logout/" class="btn btn-danger btn-sm"><i class="fa-solid fa-power-off me-1"></i>Wyloguj</a>
+        {% if request.user.is_superuser %}
+        <div>
+            <a href="{% url 'zarzadzaj_przedmiotem_nowy' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-plus me-2"></i>Nowy Przedmiot</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Przedmiot</th>
+                        <th>Kierunek</th>
+                        <th>ECTS</th>
+                        <th class="text-end pe-4">Dostępne Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in przedmioty %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ p.nazwa_pl }}</div>
+                            <div class="text-muted small italic">{{ p.kod_przedmiotu }}</div>
+                        </td>
+                        <td><span class="badge bg-secondary-subtle text-secondary border">{{ p.modul.kierunek.nazwa }}</span></td>
+                        <td><div class="badge bg-primary-subtle text-primary">{{ p.ects }} ECTS</div></td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+
+                                {% if request.user.is_superuser or p.id in przedmioty_kierunku_ids %}
+                                <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-light border shadow-sm" title="Zarządzaj strukturą (Koordynator Kierunku)">
+                                    <i class="fa-solid fa-gear text-primary"></i>
+                                </a>
+                                {% endif %}
+
+                                {% if request.user.is_superuser or p.id in moje_przedmioty_ids %}
+                                <a href="{% url 'edycja_sylabusa' p.id %}" class="btn btn-sm btn-primary shadow-sm" title="Edytuj Sylabus (Wykładowca)">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                {% endif %}
+
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-5 text-muted">Nie znaleziono przedmiotów powiązanych z Twoim kontem.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<div class="container-fluid px-4 pb-5">
-    
-    {% regroup przedmioty|dictsort:"modul.kierunek.nazwa" by modul.kierunek as kierunki_grupowane %}
-    
-    {% for kierunek_grupa in kierunki_grupowane %}
-        <div class="kierunek-header d-flex align-items-center">
-            <i class="fa-solid fa-graduation-cap fs-1 text-primary me-3"></i>
-            <div>
-                <h2 class="fw-bold mb-0 text-dark">Kierunek: {{ kierunek_grupa.grouper.nazwa|default:"Brak przypisanego kierunku" }}</h2>
-                <div class="text-secondary fw-bold mt-1">
-                    <span class="badge bg-secondary me-2">Poziom: {{ kierunek_grupa.grouper.get_poziom_display }}</span>
-                    <span class="badge bg-secondary">Forma: {{ kierunek_grupa.grouper.get_forma_display }}</span>
-                </div>
-            </div>
-        </div>
-
-        {% regroup kierunek_grupa.list|dictsort:"modul.semestr" by modul.semestr as semestry %}
-        
-        <div class="row">
-        {% for semestr in semestry %}
-            <div class="col-12">
-                <div class="card semester-card">
-                    <div class="semester-header d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 fw-bold text-dark"><i class="fa-regular fa-calendar-days text-primary me-2"></i>Semestr {{ semestr.grouper }}</h4>
-                        <div class="semester-ects-calc">
-                            <span class="fw-bold me-2 text-secondary">Podsumowanie semestru:</span>
-                            <span class="badge bg-secondary text-white ects-badge badge-ects-val rounded-pill">Liczenie...</span>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th style="width: 8%;">Kod</th>
-                                    <th style="width: 20%;">Nazwa przedmiotu</th>
-                                    <th style="width: 15%;">Koordynatorzy</th>
-                                    <th style="width: 22%; text-align: center;">Godziny (W//L/P/S) + Sumy</th>
-                                    <th style="width: 10%; text-align: center;">Badania</th>
-                                    <th style="width: 8%; text-align: center;">ECTS</th>
-                                    <th style="width: 17%; text-align: right;">Akcje</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for p in semestr.list %}
-                                <tr class="przedmiot-row" data-ects="{% if p.ects %}{{ p.ects }}{% else %}0{% endif %}">
-                                    <td><span class="badge bg-light text-dark border">{{ p.kod_przedmiotu }}</span></td>
-                                    <td class="fw-bold">{{ p.nazwa_pl }}<br><small class="text-muted fw-normal">{{ p.modul.typ }}</small></td>
-                                    <td>
-                                        {% for k in p.koordynatorzy.all %}
-                                            <span class="coordinator-tag"><i class="fa-solid fa-user-tie text-primary me-1"></i>{{ k.user.first_name }} {{ k.user.last_name }}</span>
-                                        {% empty %}
-                                            <span class="text-danger small fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i>Brak</span>
-                                        {% endfor %}
-                                    </td>
-                                    
-                                    <td class="text-center">
-                                        <div class="small fw-bold text-dark mb-2 pb-1 border-bottom border-light" title="Wykad / wiczenia / Lab. / Projekt / Seminarium">
-                                            W:{{ p.godz_wyklad }} / :{{ p.godz_cwiczenia }} / L:{{ p.godz_lab }} / P:{{ p.godz_projekt }} / S:{{ p.godz_seminarium }}
-                                        </div>
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle" title="Z prowadzcym (Kontaktowe)">
-                                                <i class="fa-solid fa-chalkboard-user"></i> {{ p.godziny_kontaktowe }}h
-                                            </span>
-                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle" title="Bez prowadzcego (Praca wasna)">
-                                                <i class="fa-solid fa-house-user"></i> {{ p.praca_wlasna }}h
-                                            </span>
-                                        </div>
-                                    </td>
-                                    
-                                    <td class="text-center">
-                                        {% if p.badania_naukowe %}
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fa-solid fa-microscope me-1"></i> Tak</span>
-                                        {% else %}
-                                            <span class="badge bg-light text-muted border"><i class="fa-solid fa-minus"></i> Nie</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="text-center fs-5 fw-bold text-primary">{{ p.ects }}</td>
-                                    <td class="text-end">
-                                        <a href="/admin/core/przedmiot/{{ p.id }}/change/" class="btn btn-sm btn-outline-secondary me-1" title="Zmie dane"><i class="fa-solid fa-pen"></i></a>
-                                        <a href="{% url 'edycja_sylabusa' p.id %}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-        </div>
-        
-    {% empty %}
-        <div class="alert alert-info shadow-sm p-4 text-center">
-            <i class="fa-solid fa-folder-open fs-1 text-secondary mb-3 d-block"></i>
-            <h5 class="fw-bold">Brak przedmiotów w bazie danych</h5>
-            <p>Kliknij przycisk "Dodaj przedmiot" u góry, aby rozpocz ukadanie planu.</p>
-        </div>
-    {% endfor %}
-</div>
-
-<script>
-    (function() {
-        const semestryCards = document.querySelectorAll('.semester-card');
-        
-        semestryCards.forEach(card => {
-            let sumaEcts = 0;
-            const wiersze = card.querySelectorAll('.przedmiot-row');
-            
-            wiersze.forEach(wiersz => {
-                let stringValue = wiersz.getAttribute('data-ects');
-                let numericValue = parseInt(stringValue, 10);
-                if (!isNaN(numericValue)) {
-                    sumaEcts += numericValue;
-                }
-            });
-            
-            const badge = card.querySelector('.badge-ects-val');
-            if (badge) {
-                badge.classList.remove('bg-secondary', 'text-white');
-                
-                if (sumaEcts === 30) {
-                    badge.classList.add('bg-success-custom');
-                    badge.innerHTML = '<i class="fa-solid fa-check-double me-1"></i> ' + sumaEcts + ' / 30 ECTS (Poprawnie)';
-                } else {
-                    badge.classList.add('bg-danger-custom');
-                    let diff = 30 - sumaEcts;
-                    let msg = diff > 0 ? 'Brakuje ' + diff : 'Przekroczono o ' + Math.abs(diff);
-                    badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> ' + sumaEcts + ' / 30 ECTS (' + msg + ')';
-                }
-            }
-        });
-    })();
-</script>
-</body>
-</html>
+{% endblock %}

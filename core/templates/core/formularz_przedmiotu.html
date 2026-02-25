@@ -1,0 +1,192 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<style>
+    .field-locked { background-color: #f8f9fa !important; border: 1px solid #dee2e6 !important; opacity: 0.8; pointer-events: none; }
+    .field-editable { background-color: #ffffff !important; border: 1px solid #0d6efd !important; border-left-width: 4px !important; }
+    .section-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+</style>
+
+<div class="container py-4">
+    {% if form.errors %}
+    <div class="alert alert-danger shadow-sm border-start border-danger border-4 mb-4">
+        <h5 class="fw-bold"><i class="fa-solid fa-circle-exclamation me-2"></i>Błąd walidacji:</h5>
+        <ul class="mb-0">
+            {% for field, errors in form.errors.items %}
+                <li><strong>{{ field }}:</strong> {{ errors|striptags }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="card shadow border-0 p-4 p-md-5">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <div>
+                <h2 class="text-primary fw-bold mb-0">{% if is_dean %}Zarządzanie Przedmiotem{% else %}Nadzór nad Przedmiotem{% endif %}</h2>
+                <p class="small text-muted mt-1 mb-0">
+                    Pola <span class="badge bg-secondary">Szare</span> są zablokowane dla Koordynatora.
+                </p>
+            </div>
+            <div class="badge bg-dark p-2 fs-6 shadow-sm">
+                <i class="fa-solid fa-user-tie me-2"></i>
+                {% if is_dean %}Prodziekan{% else %}Koordynator Kierunku{% endif %}
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-5">
+                <span class="section-label text-muted">Kierunek Studiów</span>
+                <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">
+                    {{ form.kierunek }}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <span class="section-label text-muted">Semestr</span>
+                <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">
+                    {{ form.semestr }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <span class="section-label text-danger">Typ zajęć</span>
+                <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">
+                    {{ form.typ_zajec }}
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-3 mb-4 border bg-light shadow-sm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <span class="section-label text-muted">Status</span>
+                    <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">{{ form.status }}</div>
+                </div>
+
+                <div class="col-md-9">
+                    <span class="section-label text-muted">Nazwa PL</span>
+                    <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">{{ form.nazwa_pl }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <span class="section-label text-muted">Nazwa EN</span>
+                    <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">{{ form.nazwa_en }}</div>
+                </div>
+
+                <div class="col-md-3">
+                    <span class="section-label text-muted">Kod przedmiotu</span>
+                    <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">{{ form.kod_przedmiotu }}</div>
+                </div>
+
+                <div class="col-md-3">
+                    <span class="section-label text-primary fw-bold">Punkty ECTS</span>
+                    <div class="field-editable rounded">{{ form.ects }}</div>
+                </div>
+
+                <div class="col-md-4">
+                    <span class="section-label text-muted">Język wykładowy</span>
+                    <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">{{ form.jezyk_wykladowy }}</div>
+                </div>
+
+                <div class="col-md-4">
+                    <span class="section-label text-muted">Cykl dydaktyczny</span>
+                    <div class="{% if not is_dean %}pe-none field-locked{% endif %} rounded">{{ form.cykl_dydaktyczny }}</div>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end pb-1">
+                    <div class="form-check form-switch p-2 rounded border bg-white w-100 ps-5">
+                        {{ form.badania_naukowe }} <label class="fw-bold small ms-1 text-secondary">Badania naukowe?</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold text-dark mt-4 mb-3"><i class="fa-regular fa-clock me-2 text-primary"></i>Rozkład Godzinowy</h5>
+        <div class="row row-cols-2 row-cols-md-6 g-2 text-center mb-5">
+            <div class="col"><span class="section-label">Wykład</span><div class="field-editable rounded">{{ form.godz_wyklad }}</div></div>
+            <div class="col"><span class="section-label">Ćwicz.</span><div class="field-editable rounded">{{ form.godz_cwiczenia }}</div></div>
+            <div class="col"><span class="section-label">Lab.</span><div class="field-editable rounded">{{ form.godz_lab }}</div></div>
+            <div class="col"><span class="section-label">Proj.</span><div class="field-editable rounded">{{ form.godz_projekt }}</div></div>
+            <div class="col"><span class="section-label">Sem.</span><div class="field-editable rounded">{{ form.godz_seminarium }}</div></div>
+            <div class="col"><span class="section-label text-danger">Egz.</span><div class="field-editable rounded">{{ form.godz_egzamin }}</div></div>
+        </div>
+
+        <div class="row mb-5 g-4 border-top pt-4">
+            <div class="col-md-5">
+                <h5 class="fw-bold text-success mb-2"><i class="fa-solid fa-users-gear me-2"></i>Obsada przedmiotu</h5>
+                <div class="p-3 border rounded bg-white shadow-sm field-editable" style="max-height: 250px; overflow-y: auto;">
+                    {{ form.koordynatorzy }}
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <h5 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-list-check me-2"></i>Aktualne Efekty Przedmiotu</h5>
+                <div class="p-3 border rounded bg-light shadow-sm" style="max-height: 250px; overflow-y: auto;">
+                    {% if przedmiot and przedmiot.efekty_kierunkowe.all %}
+                        <ul class="list-group list-group-flush small">
+                            {% for e in przedmiot.efekty_kierunkowe.all %}
+                                <li class="list-group-item bg-transparent px-0 py-1 d-flex justify-content-between align-items-center">
+                                    <div><strong class="text-dark">{{ e.kod }}</strong>: <span class="text-muted">{{ e.opis }}</span></div>
+                                    <div class="form-check m-0 ms-2">
+                                        <input class="form-check-input" type="checkbox" name="usun_efekt" value="{{ e.id }}">
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center text-muted my-3 small">Brak przypisanych efektów.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold text-danger mb-2"><i class="fa-solid fa-plus-circle me-2"></i>Dodaj nowe Efekty</h5>
+        <div class="p-3 bg-white border rounded shadow-sm mb-4 field-editable">
+            <div id="nowe-efekty-container">
+                <div class="row g-2 mb-2 align-items-center efekt-row pb-2">
+                    <div class="col-md-3">
+                        <select name="nowy_efekt_kat" class="form-select border-primary">
+                            <option value="W">Wiedza (W)</option>
+                            <option value="U">Umiejętności (U)</option>
+                            <option value="K">Kompetencje (K)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" name="nowy_efekt_opis" class="form-control border-primary" placeholder="Treść nowego efektu...">
+                    </div>
+                    <div class="col-md-1 text-center">
+                        <button type="button" class="btn btn-outline-secondary" onclick="this.closest('.efekt-row').remove()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-danger fw-bold mt-2 shadow-sm" onclick="addEfektRow()"><i class="fa-solid fa-plus me-1"></i> Dodaj kolejny wiersz</button>
+        </div>
+
+        <div class="mt-5 d-flex justify-content-between border-top pt-4">
+            <a href="/" class="btn btn-outline-secondary px-4 btn-lg">Anuluj</a>
+            <button type="submit" class="btn btn-primary btn-lg px-5 shadow fw-bold">Zapisz Projekt Przedmiotu</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function addEfektRow() {
+        const container = document.getElementById('nowe-efekty-container');
+        const row = document.createElement('div');
+        row.className = 'row g-2 mb-2 align-items-center efekt-row pb-2 border-top pt-2';
+        row.innerHTML = `
+            <div class="col-md-3">
+                <select name="nowy_efekt_kat" class="form-select border-primary">
+                    <option value="W">Wiedza (W)</option>
+                    <option value="U">Umiejętności (U)</option>
+                    <option value="K">Kompetencje (K)</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <input type="text" name="nowy_efekt_opis" class="form-control border-primary" placeholder="Treść efektu...">
+            </div>
+            <div class="col-md-1 text-center">
+                <button type="button" class="btn btn-outline-danger" onclick="this.closest('.efekt-row').remove()"><i class="fa-solid fa-xmark"></i></button>
+            </div>`;
+        container.appendChild(row);
+    }
+</script>
+{% endblock %}

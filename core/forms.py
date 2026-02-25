@@ -1,34 +1,38 @@
 from django import forms
-from .models import SzczegolySylabusa, Przedmiot, EfektKierunkowy
+from django.contrib.auth.models import User
+from .models import SzczegolySylabusa, Przedmiot, EfektKierunkowy, Wykladowca, Modul, KierunekStudiow
 
 class SylabusForm(forms.ModelForm):
-    jezyk_wykladowy = forms.CharField(max_length=50, required=False, label="Jzyk wykadowy")
-    
-    # CHECKBOXY
-    efekty_kierunkowe = forms.ModelMultipleChoiceField(
-        queryset=EfektKierunkowy.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        label="Zaznacz realizowane efekty kierunkowe (z tabeli)"
-    )
-
-    harmonogram_raw = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control border-primary', 'rows': 5, 'placeholder': 'Wklej list tematÃ³w...'}),
-        required=False, label="SMART PASTE"
-    )
-
+    efekty_kierunkowe = forms.ModelMultipleChoiceField(queryset=EfektKierunkowy.objects.all(), widget=forms.CheckboxSelectMultiple, required=False)
+    harmonogram_raw = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control border-primary', 'rows': 5}), required=False)
     class Meta:
         model = SzczegolySylabusa
-        fields = [
-            'opis_wstepny', 'wymagania_wstepne', 'efekty_wiedza', 'efekty_umiejetnosci', 'efekty_kompetencje',
-            'mapowanie_efektow', 'metody_nauczania', 'formy_oceny', 'zasady_oceniania', 
-            'odrabianie_zajec', 'wymagania_obecnosci', 'pw_przygotowanie_cw', 'pw_sprawozdania', 
-            'pw_projekt', 'pw_wyklad', 'pw_egzamin', 'pw_literatura', 'literatura', 'inne_informacje'
-        ]
+        exclude = ['przedmiot']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields: self.fields[field].required = False
+
+class PrzedmiotForm(forms.ModelForm):
+    kierunek = forms.ModelChoiceField(queryset=KierunekStudiow.objects.all(), widget=forms.Select(attrs={'class': 'form-select'}))
+    typ_zajec = forms.ChoiceField(choices=Modul.TYPY, widget=forms.Select(attrs={'class': 'form-select'}))
+    semestr = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    class Meta:
+        model = Przedmiot
+        fields = ['status', 'nazwa_pl', 'nazwa_en', 'kod_przedmiotu', 'ects', 'jezyk_wykladowy', 'cykl_dydaktyczny', 'badania_naukowe', 'godz_wyklad', 'godz_cwiczenia', 'godz_lab', 'godz_projekt', 'godz_seminarium', 'godz_egzamin', 'koordynatorzy']
         widgets = {
-            field: forms.Textarea(attrs={'class': 'form-control', 'rows': 3}) for field in fields if 'pw_' not in field
+            'koordynatorzy': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            'status': forms.Select(attrs={'class': 'form-select'})
         }
 
-    def __init__(self, *args, **kwargs):
-        super(SylabusForm, self).__init__(*args, **kwargs)
-        for field in self.fields: self.fields[field].required = False
+class KierunekForm(forms.ModelForm):
+    class Meta:
+        model = KierunekStudiow
+        fields = '__all__'
+
+class WykladowcaUserForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    tytul = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    katedra = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']

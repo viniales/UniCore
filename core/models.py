@@ -1,43 +1,38 @@
-﻿from django.db import models
+from django.db import models
 from django.contrib.auth.models import User
 
-# --- SOWNIKI ---
 class EfektUczenia(models.Model):
-    KATEGORIE = [('W', 'Wiedza'), ('U', 'Umiejtnoci'), ('K', 'Kompetencje')]
-    kod = models.CharField(max_length=20, unique=True)
+    KATEGORIE = [('W', 'Wiedza'), ('U', 'Umiejętności'), ('K', 'Kompetencje')]
+    kod = models.CharField(max_length=20)
     kategoria = models.CharField(max_length=1, choices=KATEGORIE)
     opis = models.TextField()
     def __str__(self): return self.kod
 
 class Wykladowca(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    tytul = models.CharField(max_length=50, verbose_name="Tytu/Stopie naukowy", default="dr in.")
-    katedra = models.CharField(max_length=100, verbose_name="Katedra/Wydzia")
+    tytul = models.CharField(max_length=50, verbose_name="Tytuł", default="dr inż.")
+    katedra = models.CharField(max_length=100, verbose_name="Katedra")
+    def __str__(self): return f"{self.tytul} {self.user.first_name} {self.user.last_name}"
 
-    def __str__(self):
-        return f"{self.tytul} {self.user.first_name} {self.user.last_name}"
-
-# NOWO: Sownik Efektów Kierunkowych (z Excela)
 class EfektKierunkowy(models.Model):
-    TYPY = [('W', 'Wiedza'), ('U', 'Umiejtnoci'), ('K', 'Kompetencje')]
-    kod = models.CharField(max_length=20, unique=True, verbose_name="Kod efektu (np. K_W01)")
-    opis = models.TextField(verbose_name="Tre efektu")
+    TYPY = [('W', 'Wiedza'), ('U', 'Umiejętności'), ('K', 'Kompetencje')]
+    kod = models.CharField(max_length=20, verbose_name="Kod efektu")
+    opis = models.TextField(verbose_name="Treść efektu")
     kategoria = models.CharField(max_length=1, choices=TYPY, default='W')
-    
-    def __str__(self):
-        return f"{self.kod} - {self.opis[:50]}..."
+    def __str__(self): return f"{self.kod} - {self.opis[:50]}..."
 
 class KierunekStudiow(models.Model):
-    POZIOMY = [('1', 'Pierwszy stopie'), ('2', 'Drugi stopie')]
+    POZIOMY = [('1', 'Pierwszy stopień'), ('2', 'Drugi stopień')]
     FORMY = [('S', 'Stacjonarne'), ('N', 'Niestacjonarne')]
     nazwa = models.CharField(max_length=200)
-    wydzial = models.CharField(max_length=200, default="Wydzia Informatyki")
+    wydzial = models.CharField(max_length=200, default="Wydział Informatyki")
     poziom = models.CharField(max_length=1, choices=POZIOMY, default='1')
     forma = models.CharField(max_length=1, choices=FORMY, default='S')
+    koordynator = models.ForeignKey(Wykladowca, on_delete=models.SET_NULL, null=True, blank=True, related_name='koordynowane_kierunki')
     def __str__(self): return self.nazwa
 
 class Modul(models.Model):
-    TYPY = [('Obowizkowy', 'Obowizkowy'), ('Wybieralny', 'Wybieralny')]
+    TYPY = [('Obowiązkowy', 'Obowiązkowy'), ('Wybieralny', 'Wybieralny')]
     kierunek = models.ForeignKey(KierunekStudiow, on_delete=models.CASCADE)
     kod_modulu = models.CharField(max_length=50)
     nazwa = models.CharField(max_length=200)
@@ -50,84 +45,47 @@ class Przedmiot(models.Model):
     STATUSY = [('ROBOCZY', 'Wersja Robocza'), ('ZATWIERDZONY', 'Zatwierdzony')]
     modul = models.ForeignKey(Modul, on_delete=models.CASCADE, related_name='przedmioty')
     status = models.CharField(max_length=20, choices=STATUSY, default='ROBOCZY')
-    
     nazwa_pl = models.CharField(max_length=255)
     nazwa_en = models.CharField(max_length=255, blank=True)
     kod_przedmiotu = models.CharField(max_length=50)
     jezyk_wykladowy = models.CharField(max_length=50, default="Polski")
     cykl_dydaktyczny = models.CharField(max_length=20, default="2026/2027")
-    badania_naukowe = models.BooleanField(default=False, verbose_name="Zwizany z badaniami?")
+    badania_naukowe = models.BooleanField(default=False)
     ects = models.IntegerField()
-    
     godz_wyklad = models.IntegerField(default=0)
     godz_cwiczenia = models.IntegerField(default=0)
     godz_lab = models.IntegerField(default=0)
     godz_projekt = models.IntegerField(default=0)
     godz_seminarium = models.IntegerField(default=0)
-    godz_egzamin = models.IntegerField(default=0, verbose_name="Godziny na egzamin")
-
-    efekty_kierunkowe = models.ManyToManyField(EfektKierunkowy, blank=True, verbose_name='Realizowane efekty kierunkowe')
+    godz_egzamin = models.IntegerField(default=0)
+    efekty_kierunkowe = models.ManyToManyField(EfektKierunkowy, blank=True)
     koordynatorzy = models.ManyToManyField(Wykladowca, related_name='przypisane_przedmioty', blank=True)
-
     def __str__(self): return self.nazwa_pl
-
-    @property
-    def godziny_kontaktowe(self):
-        return (self.godz_wyklad + self.godz_cwiczenia + self.godz_lab + 
-                self.godz_projekt + self.godz_seminarium + self.godz_egzamin)
-
-    @property
-    def praca_wlasna(self):
-        if hasattr(self, 'sylabus'):
-            s = self.sylabus
-            return ((s.pw_przygotowanie_cw or 0) + (s.pw_sprawozdania or 0) + 
-                    (s.pw_projekt or 0) + (s.pw_wyklad or 0) + 
-                    (s.pw_egzamin or 0) + (s.pw_literatura or 0))
-        return 0
 
 class SzczegolySylabusa(models.Model):
     przedmiot = models.OneToOneField(Przedmiot, on_delete=models.CASCADE, related_name='sylabus')
-    opis_wstepny = models.TextField(verbose_name="Cele ksztacenia", blank=True, default="")
-    wymagania_wstepne = models.TextField(verbose_name="Wymagania wstpne", blank=True, default="")
-    efekty_wiedza = models.TextField(verbose_name="Efekty - Wiedza", default="-", blank=True)
-    efekty_umiejetnosci = models.TextField(verbose_name="Efekty - Umiejtnoci", default="-", blank=True)
-    efekty_kompetencje = models.TextField(verbose_name="Efekty - Kompetencje", default="-", blank=True)
-    
-    mapowanie_efektow = models.TextField(verbose_name="Relacje efektów (tekst)", blank=True, default="")
-
-    metody_nauczania = models.TextField(verbose_name="Metody nauczania", blank=True, default="")
-    formy_oceny = models.TextField(verbose_name="Metody weryfikacji wiedzy", blank=True, default="")
-    zasady_oceniania = models.TextField(verbose_name="Sposoby ustalenia oceny", default="Zgodnie z regulaminem...", blank=True)
-    odrabianie_zajec = models.TextField(verbose_name="Sposoby odrabiania", default="Konsultacja z prowadzcym...", blank=True)
-    wymagania_obecnosci = models.TextField(verbose_name="Wymagania obecnoci", default="Obecno obowizkowa...", blank=True)
-    
+    opis_wstepny = models.TextField(blank=True, default="")
+    wymagania_wstepne = models.TextField(blank=True, default="")
+    efekty_wiedza = models.TextField(default="-", blank=True)
+    efekty_umiejetnosci = models.TextField(default="-", blank=True)
+    efekty_kompetencje = models.TextField(default="-", blank=True)
+    mapowanie_efektow = models.TextField(blank=True, default="")
+    metody_nauczania = models.TextField(blank=True, default="")
+    formy_oceny = models.TextField(blank=True, default="")
+    zasady_oceniania = models.TextField(default="Zgodnie z regulaminem...", blank=True)
+    odrabianie_zajec = models.TextField(default="Konsultacja z prowadzącym...", blank=True)
+    wymagania_obecnosci = models.TextField(default="Obecność obowiązkowa...", blank=True)
     pw_przygotowanie_cw = models.IntegerField(default=0, blank=True, null=True)
     pw_sprawozdania = models.IntegerField(default=0, blank=True, null=True)
     pw_projekt = models.IntegerField(default=0, blank=True, null=True)
     pw_wyklad = models.IntegerField(default=0, blank=True, null=True)
     pw_egzamin = models.IntegerField(default=0, blank=True, null=True)
     pw_literatura = models.IntegerField(default=0, blank=True, null=True)
-    
-    literatura = models.TextField(verbose_name="Literatura", blank=True, default="")
-    badania_publikacje = models.TextField(blank=True, verbose_name="Badania i publikacje", default="")
-    inne_informacje = models.TextField(blank=True, verbose_name="Inne informacje", default="")
-
-    def __str__(self): return f"Sylabus: {self.przedmiot.nazwa_pl}"
+    literatura = models.TextField(blank=True, default="")
+    inne_informacje = models.TextField(blank=True, default="")
 
 class TrescZajec(models.Model):
     przedmiot = models.ForeignKey(Przedmiot, on_delete=models.CASCADE, related_name='harmonogram')
     numer_tematu = models.IntegerField()
     temat = models.TextField()
     liczba_godzin = models.IntegerField()
-
-class EfektPrzedmiotowy(models.Model):
-    KATEGORIE = [('W', 'Wiedza'), ('U', 'Umiejtnoci'), ('K', 'Kompetencje')]
-    przedmiot = models.ForeignKey(Przedmiot, on_delete=models.CASCADE, related_name='efekty_przedmiotowe')
-    kategoria = models.CharField(max_length=1, choices=KATEGORIE)
-    kod_efektu_przedmiotowego = models.CharField(max_length=10, verbose_name="Kod (np. EU1)")
-    opis = models.TextField()
-    powiazany_efekt_kierunkowy = models.ForeignKey(EfektKierunkowy, on_delete=models.SET_NULL, null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.przedmiot.nazwa_pl} - {self.kod_efektu_przedmiotowego}"
-
