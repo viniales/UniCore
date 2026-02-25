@@ -19,10 +19,7 @@ class PrzedmiotForm(forms.ModelForm):
     class Meta:
         model = Przedmiot
         fields = ['status', 'nazwa_pl', 'nazwa_en', 'kod_przedmiotu', 'ects', 'jezyk_wykladowy', 'cykl_dydaktyczny', 'badania_naukowe', 'godz_wyklad', 'godz_cwiczenia', 'godz_lab', 'godz_projekt', 'godz_seminarium', 'godz_egzamin', 'koordynatorzy']
-        widgets = {
-            'koordynatorzy': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-            'status': forms.Select(attrs={'class': 'form-select'})
-        }
+        widgets = {'koordynatorzy': forms.CheckboxSelectMultiple(), 'status': forms.Select(attrs={'class': 'form-select'})}
 
 class KierunekForm(forms.ModelForm):
     class Meta:
