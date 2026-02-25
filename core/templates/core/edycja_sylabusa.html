@@ -515,18 +515,54 @@
         <div class="card section-card">
             <div class="section-header header-purple">
                 <span class="section-icon"><i class="fa-solid fa-clock"></i></span>
-                4. Nakład Pracy Studenta (Godziny)
+                4. Obciążenie pracą studenta i ECTS
             </div>
             <div class="card-body">
-                <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-7">
-                        <div class="p-4 bg-white border rounded shadow-sm">
-                            <div class="hours-row"><span><i class="fa-solid fa-flask text-muted me-2"></i>Przygotowanie do ćwiczeń</span> {{ form.pw_przygotowanie_cw }}</div>
-                            <div class="hours-row"><span><i class="fa-solid fa-file-signature text-muted me-2"></i>Sporządzanie sprawozdań</span> {{ form.pw_sprawozdania }}</div>
-                            <div class="hours-row"><span><i class="fa-solid fa-laptop-code text-muted me-2"></i>Przygotowanie projektu</span> {{ form.pw_projekt }}</div>
-                            <div class="hours-row"><span><i class="fa-solid fa-book-open-reader text-muted me-2"></i>Praca z literaturą / Wykład</span> {{ form.pw_wyklad }}</div>
-                            <div class="hours-row"><span><i class="fa-solid fa-graduation-cap text-muted me-2"></i>Przygotowanie do egzaminu</span> {{ form.pw_egzamin }}</div>
-                            <div class="hours-row border-0 pb-0"><span><i class="fa-solid fa-folder-plus text-muted me-2"></i>Inne (Literatura uzupełn.)</span> {{ form.pw_literatura }}</div>
+                <div class="row">
+                    <div class="col-md-7 border-end pe-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fa-solid fa-user-graduate text-secondary fs-5 me-2"></i>
+                            <h6 class="fw-bold text-secondary mb-0">Praca własna studenta</h6>
+                        </div>
+                        <div class="hours-row"><span>Przygotowanie do ćwiczeń:</span> {{ form.pw_przygotowanie_cw }}</div>
+                        <div class="hours-row"><span>Sprawozdania/Laboratoria:</span> {{ form.pw_sprawozdania }}</div>
+                        <div class="hours-row"><span>Przygotowanie projektu:</span> {{ form.pw_projekt }}</div>
+                        <div class="hours-row"><span>Nauka do wykładu/zaliczenia:</span> {{ form.pw_wyklad }}</div>
+                        <div class="hours-row"><span>Przygotowanie do egzaminu:</span> {{ form.pw_egzamin }}</div>
+                        <div class="hours-row border-0"><span>Studiowanie literatury:</span> {{ form.pw_literatura }}</div>
+                    </div>
+
+                    <div class="col-md-5 ps-4">
+                        <div class="p-3 rounded h-100" style="background-color: #f8fafc; border: 2px dashed #cbd5e1;">
+                            <h6 class="fw-bold text-center mb-4"><i class="fa-solid fa-calculator text-primary me-2"></i>Kalkulator ECTS (Live)</h6>
+
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>Kontakt z prowadzącym (stałe):</span>
+                                <strong id="live-kontaktowe" class="text-dark">0 h</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>Praca własna (suma):</span>
+                                <strong id="live-wlasna" class="text-dark">0 h</strong>
+                            </div>
+                            <hr class="text-muted opacity-25">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold">Całkowity czas pracy:</span>
+                                <strong id="live-suma" class="fs-5">0 h</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-4 small">
+                                <span class="text-muted">Wymagane dla <b class="text-dark">{{ przedmiot.ects }} ECTS</b>:</span>
+                                <strong id="live-wymagane" class="text-primary">0 h</strong>
+                            </div>
+
+                            <div id="alert-ects" class="alert alert-danger py-2 px-3 small mb-2 shadow-sm" style="display: none; border-left: 4px solid #dc2626;">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i> Błąd sumy! Brakuje lub masz za dużo godzin w stosunku do punktów ECTS.
+                            </div>
+                            <div id="alert-proporcja" class="alert alert-warning py-2 px-3 small mb-2 shadow-sm" style="display: none; border-left: 4px solid #ca8a04;">
+                                <i class="fa-solid fa-scale-unbalanced me-1"></i> Poniżej 50% godzin w kontakcie z prowadzącym.
+                            </div>
+                            <div id="alert-ok" class="alert alert-success py-2 px-3 small mb-0 shadow-sm" style="display: none; border-left: 4px solid #16a34a;">
+                                <i class="fa-solid fa-check-circle me-1"></i> Parametry godzinowe są poprawne.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -597,6 +633,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // --- SEKCJA CELÓW ---
         const fieldCele = document.getElementById("id_opis_wstepny");
         let celeList = [];
         let metodyDict = { W: '', U: '', K: '' };
@@ -670,6 +707,7 @@
         parseCeleData();
         renderCeleUI();
 
+        // --- SEKCJA HARMONOGRAMU ---
         const fieldHarm = document.getElementById("id_harmonogram_raw");
         const harmContainer = document.getElementById("harmonogram-ui-container");
         let harmGroups = [];
@@ -805,6 +843,85 @@
 
         parseHarmData();
         renderHarmUI();
+
+        // --- NOWE: KALKULATOR ECTS ---
+        const ects = parseInt('{{ przedmiot.ects|default:"0" }}') || 0;
+        const h_wyk = parseInt('{{ przedmiot.godz_wyklad|default:"0" }}') || 0;
+        const h_cw = parseInt('{{ przedmiot.godz_cwiczenia|default:"0" }}') || 0;
+        const h_lab = parseInt('{{ przedmiot.godz_lab|default:"0" }}') || 0;
+        const h_proj = parseInt('{{ przedmiot.godz_projekt|default:"0" }}') || 0;
+        const h_sem = parseInt('{{ przedmiot.godz_seminarium|default:"0" }}') || 0;
+
+        const inputCw = document.getElementById('id_pw_przygotowanie_cw');
+        const inputLab = document.getElementById('id_pw_sprawozdania');
+        const inputProj = document.getElementById('id_pw_projekt');
+        const inputWyk = document.getElementById('id_pw_wyklad');
+        const inputEgz = document.getElementById('id_pw_egzamin');
+        const inputLit = document.getElementById('id_pw_literatura');
+
+        const allInputs = [inputCw, inputLab, inputProj, inputWyk, inputEgz, inputLit];
+
+        const uiKontaktowe = document.getElementById('live-kontaktowe');
+        const uiWlasna = document.getElementById('live-wlasna');
+        const uiSuma = document.getElementById('live-suma');
+        const uiWymagane = document.getElementById('live-wymagane');
+
+        const alertEcts = document.getElementById('alert-ects');
+        const alertProporcja = document.getElementById('alert-proporcja');
+        const alertOk = document.getElementById('alert-ok');
+
+        function calculateECTS() {
+            let egzamin_kontakt = (parseInt(inputEgz?.value) || 0) > 0 ? 2 : 0;
+            const sumaKontaktowe = h_wyk + h_cw + h_lab + h_proj + h_sem + egzamin_kontakt;
+
+            let sumaWlasna = 0;
+            allInputs.forEach(input => {
+                if (input) sumaWlasna += parseInt(input.value) || 0;
+            });
+
+            const sumaCalkowita = sumaKontaktowe + sumaWlasna;
+            const wymaganeGodziny = ects * 25;
+
+            uiKontaktowe.textContent = sumaKontaktowe + ' h';
+            uiWlasna.textContent = sumaWlasna + ' h';
+            uiSuma.textContent = sumaCalkowita + ' h';
+            uiWymagane.textContent = wymaganeGodziny + ' h (25h/ECTS)';
+
+            let isError = false;
+            let showProporcjaWarning = false;
+
+            if (Math.abs(sumaCalkowita - wymaganeGodziny) > 2) {
+                alertEcts.style.display = 'block';
+                uiSuma.classList.add('text-danger');
+                uiSuma.classList.remove('text-success');
+                isError = true;
+            } else {
+                alertEcts.style.display = 'none';
+                uiSuma.classList.remove('text-danger');
+                uiSuma.classList.add('text-success');
+            }
+
+            if (sumaCalkowita > 0 && (sumaKontaktowe / sumaCalkowita) <= 0.5) {
+                alertProporcja.style.display = 'block';
+                showProporcjaWarning = true;
+            } else {
+                alertProporcja.style.display = 'none';
+            }
+
+            if (!isError && !showProporcjaWarning && sumaCalkowita > 0) {
+                alertOk.style.display = 'block';
+            } else {
+                alertOk.style.display = 'none';
+            }
+        }
+
+        allInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('input', calculateECTS);
+            }
+        });
+
+        calculateECTS();
     });
 </script>
 
