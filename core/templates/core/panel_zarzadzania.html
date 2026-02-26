@@ -1,30 +1,68 @@
 {% extends 'core/base.html' %}
 {% block content %}
 <style>
-    :root { --admin-blue: #1e40af; --teacher-green: #065f46; --soft-bg: #f8fafc; }
-    body { background-color: var(--soft-bg); }
-    .semester-card {
-        background: white; border-radius: 15px; border: 1px solid #e2e8f0;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    :root {
+        --primary-blue: #2563eb;
+        --primary-green: #10b981;
+        --bg-color: #f8fafc;
+        --card-border: #e2e8f0;
     }
-    .semester-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1); }
-    .table-modern tr { background-color: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .table-modern td { padding: 1.25rem 1rem; border: none; }
-    .table-modern thead th { border: none; color: #64748b; font-weight: 600; }
-    .status-pill { padding: 0.4rem 1rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; }
+
+    body { background-color: var(--bg-color); }
+
+    /* Mniejsze, bardziej eleganckie karty semestralne */
+    .semester-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--card-border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        padding: 1.25rem;
+    }
+    .semester-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+    }
+
+    /* Paski postępu dla ECTS */
+    .ects-progress { height: 6px; border-radius: 3px; background-color: #e2e8f0; overflow: hidden; margin: 10px 0; }
+    .ects-bar { height: 100%; transition: width 0.3s ease; }
+
+    /* Nowoczesne tabele - wiersze jako osobne karty */
+    .table-modern { border-collapse: separate; border-spacing: 0 0.5rem; }
+    .table-modern th { border: none; color: #64748b; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.5px; padding-bottom: 0.5rem; }
+    .table-modern tr { background-color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: box-shadow 0.2s; }
+    .table-modern tr:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); }
+    .table-modern td { padding: 1rem 1.25rem; border: none; border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+    .table-modern td:first-child { border-left: 1px solid var(--card-border); border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+    .table-modern td:last-child { border-right: 1px solid var(--card-border); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+
+    .status-pill { padding: 0.35rem 0.8rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; }
+
+    /* Sekcje */
+    .section-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; }
+    .section-icon-box {
+        width: 36px; height: 36px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white;
+    }
+
+    /* Animacja dla filtrowania */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
         <div>
-            <h1 class="fw-bold text-dark mb-1"><i class="fa-solid fa-layer-group text-primary me-2"></i>{{ tryb }}</h1>
-            <p class="text-muted small mb-0">Zarządzanie programami studiów i kadrą dydaktyczną.</p>
+            <h1 class="fw-bold text-dark mb-1 fs-3"><i class="fa-solid fa-layer-group text-primary me-2"></i>{{ tryb }}</h1>
+            <p class="text-muted small mb-0">System zarządzania programami studiów</p>
         </div>
 
         {% if is_dean %}
         <div class="d-flex gap-2">
-            <a href="{% url 'dodaj_wykladowce' %}" class="btn btn-outline-dark rounded-3 px-3 shadow-sm"><i class="fa-solid fa-user-plus me-2"></i>Wykładowca</a>
-            <a href="{% url 'dodaj_kierunek' %}" class="btn btn-outline-dark rounded-3 px-3 shadow-sm"><i class="fa-solid fa-graduation-cap me-2"></i>Kierunek</a>
+            <a href="{% url 'dodaj_wykladowce' %}" class="btn btn-outline-secondary rounded-3 px-3 shadow-sm bg-white"><i class="fa-solid fa-user-plus me-2"></i>Wykładowca</a>
+            <a href="{% url 'dodaj_kierunek' %}" class="btn btn-outline-secondary rounded-3 px-3 shadow-sm bg-white"><i class="fa-solid fa-graduation-cap me-2"></i>Kierunek</a>
             <a href="{% url 'zarzadzaj_przedmiotem_nowy' %}" class="btn btn-primary rounded-3 px-4 shadow-sm fw-bold"><i class="fa-solid fa-plus me-2"></i>Nowy Przedmiot</a>
         </div>
         {% endif %}
@@ -32,93 +70,133 @@
 
     {% if statystyki_ects %}
     <div class="mb-5">
-        <div class="d-flex align-items-center mb-4 border-bottom pb-2">
-            <h3 class="fw-bold text-dark mb-0"><i class="fa-solid fa-sliders text-primary me-3"></i>Nadzór nad Kierunkami</h3>
-            <span class="badge bg-primary-subtle text-primary ms-3 px-3">Zarządzanie ECTS</span>
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div class="d-flex align-items-center">
+                <div class="section-icon-box bg-primary shadow-sm"><i class="fa-solid fa-sliders"></i></div>
+                <h3 class="section-title mb-0">Nadzór nad Kierunkami</h3>
+            </div>
+
+            <div class="d-flex align-items-center bg-white p-2 rounded-3 shadow-sm border">
+                <label for="kierunekFilter" class="fw-bold text-secondary mb-0 me-3 ms-2 small text-uppercase">
+                    <i class="fa-solid fa-filter me-1 text-primary"></i> Wybierz:
+                </label>
+                <select id="kierunekFilter" class="form-select form-select-sm border-0 fw-bold text-dark" style="min-width: 280px; background-color: #f1f5f9;" onchange="filterKierunki()">
+                    <option value="all">Pokaż wszystkie kierunki</option>
+                    {% for s_k in statystyki_ects %}
+                    <option value="{{ s_k.nazwa|slugify }}">{{ s_k.nazwa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
 
         {% for s_k in statystyki_ects %}
-        <div class="mb-5">
-            <h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-folder-tree me-2"></i>Kierunek: {{ s_k.nazwa }}</h5>
-            <div class="row g-3">
+        <div class="kierunek-block mb-5 bg-white p-4 rounded-4 shadow-sm border border-light" data-kierunek-id="{{ s_k.nazwa|slugify }}">
+            <h5 class="fw-bold text-dark mb-4"><i class="fa-solid fa-folder-tree text-muted me-2"></i>{{ s_k.nazwa }}</h5>
+
+            <div class="row g-3 mb-4">
                 {% for sem in s_k.semestry %}
-                <div class="col-md-3">
-                    <div class="semester-card p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="col-md-3 col-sm-6">
+                    <div class="semester-card">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="small text-uppercase fw-bold text-muted">Semestr {{ sem.numer }}</span>
-                            <i class="fa-solid {% if sem.alert %}fa-circle-exclamation text-danger{% else %}fa-circle-check text-success{% endif %} fs-5"></i>
+                            <i class="fa-solid {% if sem.alert %}fa-circle-exclamation text-danger{% else %}fa-circle-check text-success{% endif %}"></i>
                         </div>
-                        <div class="h3 fw-bold mb-1">{{ sem.suma }} <small class="text-muted fs-6">/ 30 ECTS</small></div>
-                        <div class="small fw-semibold text-secondary"><i class="fa-solid fa-book me-1"></i> Przedmiotów: {{ sem.liczba }}</div>
+
+                        <div class="d-flex align-items-baseline gap-1">
+                            <span class="fs-4 fw-bold {% if sem.alert %}text-danger{% else %}text-dark{% endif %}">{{ sem.suma }}</span>
+                            <span class="small text-muted">/ 30 ECTS</span>
+                        </div>
+
+                        <div class="ects-progress">
+                            <div class="ects-bar {% if sem.alert %}bg-danger{% else %}bg-primary{% endif %}"
+                                 style="width: {% widthratio sem.suma 30 100 %}%; max-width: 100%;"></div>
+                        </div>
+
+                        <div class="small fw-semibold text-secondary mt-2"><i class="fa-solid fa-book me-1 opacity-50"></i> Przedmiotów: {{ sem.liczba }}</div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+
+            <div class="table-responsive">
+                <table class="table table-modern align-middle mb-0">
+                    <thead>
+                        <tr><th class="ps-4">PRZEDMIOT</th><th>KIERUNEK / SEMESTR</th><th>ECTS</th><th class="text-end pe-4">ZARZĄDZANIE</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for p in przedmioty %}{% if p.id in przedmioty_kierunku_ids and p.modul.kierunek.nazwa == s_k.nazwa %}
+                        <tr>
+                            <td class="ps-4" style="width: 40%;">
+                                <div class="fw-bold text-dark fs-6">{{ p.nazwa_pl }}</div>
+                                <div class="text-muted small" style="font-family: monospace;">{{ p.kod_przedmiotu }}</div>
+                            </td>
+                            <td>
+                                <div class="small fw-bold text-secondary">{{ p.modul.kierunek.nazwa }}</div>
+                                <span class="badge bg-light text-dark border mt-1">Semestr {{ p.modul.semestr }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary px-2 py-1 fs-6 rounded-3">{{ p.ects }}</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-light border px-3 py-2 rounded-3 text-primary fw-bold shadow-sm hover-primary">
+                                    <i class="fa-solid fa-gear me-2"></i>Struktura
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}{% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% endfor %}
 
-        <div class="table-responsive">
-            <table class="table table-modern align-middle">
-                <thead>
-                    <tr><th class="ps-4">PRZEDMIOT</th><th>KIERUNEK / SEMESTR</th><th>PUNKTY</th><th class="text-end pe-4">AKCJA</th></tr>
-                </thead>
-                <tbody>
-                    {% for p in przedmioty %}{% if p.id in przedmioty_kierunku_ids %}
-                    <tr class="mb-2">
-                        <td class="ps-4">
-                            <div class="fw-bold text-primary fs-6">{{ p.nazwa_pl }}</div>
-                            <div class="text-muted small">Kod: {{ p.kod_przedmiotu }}</div>
-                        </td>
-                        <td>
-                            <div class="small fw-bold text-dark">{{ p.modul.kierunek.nazwa }}</div>
-                            <span class="badge bg-secondary-subtle text-secondary">Semestr {{ p.modul.semestr }}</span>
-                        </td>
-                        <td><div class="fw-bold fs-5 text-dark">{{ p.ects }}</div></td>
-                        <td class="text-end pe-4">
-                            <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-white border px-3 py-2 rounded-3 text-primary fw-bold shadow-sm">
-                                <i class="fa-solid fa-gear me-2"></i>Konfiguruj
-                            </a>
-                        </td>
-                    </tr>
-                    {% endif %}{% endfor %}
-                </tbody>
-            </table>
+        <div id="noResultsMsg" class="text-center py-5 text-muted" style="display: none;">
+            <i class="fa-solid fa-magnifying-glass fs-1 mb-3 opacity-25"></i>
+            <h5>Brak kierunków do wyświetlenia.</h5>
         </div>
     </div>
     {% endif %}
 
     {% if moje_przedmioty_ids %}
-    <div class="mt-5 pt-4">
-        <div class="d-flex align-items-center mb-4 border-bottom pb-2">
-            <h3 class="fw-bold text-dark mb-0"><i class="fa-solid fa-pen-nib text-success me-3"></i>Twoja Dydaktyka</h3>
-            <span class="badge bg-success-subtle text-success ms-3 px-3">Autor Sylabusa</span>
+    <div class="mt-5">
+        <div class="d-flex align-items-center mb-4">
+            <div class="section-icon-box shadow-sm" style="background-color: var(--primary-green);"><i class="fa-solid fa-pen-nib"></i></div>
+            <h3 class="section-title mb-0">Twoje Sylabusy</h3>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-modern align-middle">
+        <div class="table-responsive bg-white p-4 rounded-4 shadow-sm border border-light">
+            <table class="table table-modern align-middle mb-0">
                 <thead>
-                    <tr><th class="ps-4">NAZWA PRZEDMIOTU</th><th>KIERUNEK</th><th>STATUS</th><th class="text-end pe-4">EDYCJA</th></tr>
+                    <tr><th class="ps-4">NAZWA PRZEDMIOTU</th><th>KIERUNEK</th><th>STATUS</th><th class="text-end pe-4">EDYCJA SYLABUSA</th></tr>
                 </thead>
                 <tbody>
                     {% for p in przedmioty %}{% if p.id in moje_przedmioty_ids %}
                     <tr>
-                        <td class="ps-4">
-                            <div class="fw-bold text-dark">{{ p.nazwa_pl }}</div>
-                            <div class="text-muted small">ECTS: {{ p.ects }}</div>
+                        <td class="ps-4" style="width: 40%;">
+                            <div class="fw-bold text-dark fs-6">{{ p.nazwa_pl }}</div>
+                            <div class="text-muted small d-flex gap-2 align-items-center">
+                                <span style="font-family: monospace;">{{ p.kod_przedmiotu }}</span>
+                                <span class="text-light-subtle">|</span>
+                                <span>ECTS: {{ p.ects }}</span>
+                            </div>
                         </td>
-                        <td><div class="small fw-bold text-muted">{{ p.modul.kierunek.nazwa }}</div></td>
+                        <td>
+                            <div class="small fw-bold text-secondary">{{ p.modul.kierunek.nazwa }}</div>
+                        </td>
                         <td>
                             {% if p.status == 'ZATWIERDZONY' %}
-                                <span class="status-pill bg-success-subtle text-success"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony</span>
+                                <span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Gotowy</span>
                             {% else %}
-                                <span class="status-pill bg-warning-subtle text-warning-emphasis"><i class="fa-solid fa-pen-nib me-1"></i>Roboczy</span>
+                                <span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>W edycji</span>
                             {% endif %}
                         </td>
                         <td class="text-end pe-4">
                             <a href="{% url 'edycja_sylabusa' p.id %}" class="btn btn-sm btn-success px-3 py-2 rounded-3 shadow-sm fw-bold">
-                                <i class="fa-solid fa-pen-to-square me-2"></i>Edytuj Sylabus
+                                <i class="fa-solid fa-pen-to-square me-2"></i>Edytuj
                             </a>
-                            <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-2 rounded-3 px-3" target="_blank"><i class="fa-solid fa-file-pdf"></i></a>
+                            <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-2 rounded-3 px-3 py-2 shadow-sm" target="_blank" title="Pobierz PDF">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </a>
                         </td>
                     </tr>
                     {% endif %}{% endfor %}
@@ -128,4 +206,24 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function filterKierunki() {
+    const selectedId = document.getElementById('kierunekFilter').value;
+    const blocks = document.querySelectorAll('.kierunek-block');
+    let visibleCount = 0;
+
+    blocks.forEach(block => {
+        if (selectedId === 'all' || block.getAttribute('data-kierunek-id') === selectedId) {
+            block.style.display = 'block';
+            block.style.animation = 'fadeIn 0.3s ease-in-out';
+            visibleCount++;
+        } else {
+            block.style.display = 'none';
+        }
+    });
+
+    document.getElementById('noResultsMsg').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+</script>
 {% endblock %}

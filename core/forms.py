@@ -17,7 +17,6 @@ class SylabusForm(forms.ModelForm):
     class Meta:
         model = SzczegolySylabusa
         exclude = ['przedmiot']
-        # DODAŁEM WIDGETY - to one zamieniają brzydkie kwadraty na eleganckie prostokąty
         widgets = {
             'wymagania_wstepne': forms.Textarea(
                 attrs={'class': 'form-control shadow-sm', 'rows': 3, 'placeholder': 'Wpisz wymagania...'}),
@@ -58,13 +57,42 @@ class KierunekForm(forms.ModelForm):
     class Meta:
         model = KierunekStudiow
         fields = '__all__'
+        labels = {
+            'nazwa': 'Nazwa kierunku',
+            'wydzial': 'Wydział',
+            'poziom': 'Poziom studiów',
+            'forma': 'Forma studiów',
+            'koordynator': 'Koordynator kierunku (Szef)'
+        }
 
 
 class WykladowcaUserForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    tytul = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    katedra = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    password = forms.CharField(
+        label="Hasło dostępu",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    tytul = forms.CharField(
+        label="Tytuł naukowy",
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'np. dr inż.'})
+    )
+    katedra = forms.CharField(
+        label="Katedra / Zakład",
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'np. Katedra Informatyki'})
+    )
 
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email']
+        # Wymuszamy polskie nazwy dla wbudowanych pól Django
+        labels = {
+            'username': 'Nazwa użytkownika (Login)',
+            'first_name': 'Imię',
+            'last_name': 'Nazwisko',
+            'email': 'Adres e-mail',
+        }
+        # Podmieniamy ten długi angielski tekst z instrukcją do loginu
+        help_texts = {
+            'username': 'Maksymalnie 150 znaków. Dozwolone litery, cyfry oraz znaki @/./+/-/_',
+        }
