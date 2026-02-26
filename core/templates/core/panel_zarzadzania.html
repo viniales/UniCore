@@ -10,7 +10,6 @@
 
     body { background-color: var(--bg-color); }
 
-    /* Mniejsze, bardziej eleganckie karty semestralne */
     .semester-card {
         background: white;
         border-radius: 12px;
@@ -23,11 +22,9 @@
         box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
     }
 
-    /* Paski postępu dla ECTS */
     .ects-progress { height: 6px; border-radius: 3px; background-color: #e2e8f0; overflow: hidden; margin: 10px 0; }
     .ects-bar { height: 100%; transition: width 0.3s ease; }
 
-    /* Nowoczesne tabele - wiersze jako osobne karty */
     .table-modern { border-collapse: separate; border-spacing: 0 0.5rem; }
     .table-modern th { border: none; color: #64748b; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.5px; padding-bottom: 0.5rem; }
     .table-modern tr { background-color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: box-shadow 0.2s; }
@@ -36,16 +33,14 @@
     .table-modern td:first-child { border-left: 1px solid var(--card-border); border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
     .table-modern td:last-child { border-right: 1px solid var(--card-border); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
 
-    .status-pill { padding: 0.35rem 0.8rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; }
+    .status-pill { padding: 0.35rem 0.8rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
 
-    /* Sekcje */
     .section-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; }
     .section-icon-box {
         width: 36px; height: 36px; border-radius: 8px;
         display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white;
     }
 
-    /* Animacja dla filtrowania */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
@@ -121,12 +116,12 @@
             <div class="table-responsive">
                 <table class="table table-modern align-middle mb-0">
                     <thead>
-                        <tr><th class="ps-4">PRZEDMIOT</th><th>KIERUNEK / SEMESTR</th><th>ECTS</th><th class="text-end pe-4">ZARZĄDZANIE</th></tr>
+                        <tr><th class="ps-4">PRZEDMIOT</th><th>KIERUNEK / SEMESTR</th><th>ECTS</th><th>STATUS</th><th class="text-end pe-4">ZARZĄDZANIE</th></tr>
                     </thead>
                     <tbody>
                         {% for p in przedmioty %}{% if p.id in przedmioty_kierunku_ids and p.modul.kierunek.nazwa == s_k.nazwa %}
                         <tr>
-                            <td class="ps-4" style="width: 40%;">
+                            <td class="ps-4" style="width: 35%;">
                                 <div class="fw-bold text-dark fs-6">{{ p.nazwa_pl }}</div>
                                 <div class="text-muted small" style="font-family: monospace;">{{ p.kod_przedmiotu }}</div>
                             </td>
@@ -137,7 +132,27 @@
                             <td>
                                 <span class="badge bg-primary-subtle text-primary px-2 py-1 fs-6 rounded-3">{{ p.ects }}</span>
                             </td>
-
+                            <td>
+                                {% if p.status == 'ZATWIERDZONY' %}
+                                    <span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony ostatecznie</span>
+                                {% elif p.status == 'SPRAWDZONY' %}
+                                    {% if is_dean %}
+                                        <span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie (Prodziekan)</span>
+                                    {% else %}
+                                        <span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Przekazano Prodziekanowi</span>
+                                    {% endif %}
+                                {% elif p.status == 'WERYFIKACJA' %}
+                                    {% if is_dean %}
+                                        <span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-hourglass-start me-1"></i>Czeka na Szefa Kierunku</span>
+                                    {% else %}
+                                        <span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie</span>
+                                    {% endif %}
+                                {% elif p.status == 'DO_POPRAWY' %}
+                                    <span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-triangle-exclamation me-1"></i>Odrzucony do poprawy</span>
+                                {% else %}
+                                    <span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-pen-nib me-1"></i>W edycji u prowadzącego</span>
+                                {% endif %}
+                            </td>
                             <td class="text-end pe-4 text-nowrap">
                                 <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-light border px-3 py-2 rounded-3 text-primary fw-bold shadow-sm hover-primary">
                                     <i class="fa-solid fa-gear me-2"></i>Struktura
@@ -146,7 +161,6 @@
                                     <i class="fa-solid fa-file-pdf"></i>
                                 </a>
                             </td>
-
                         </tr>
                         {% endif %}{% endfor %}
                     </tbody>
@@ -190,9 +204,15 @@
                         </td>
                         <td>
                             {% if p.status == 'ZATWIERDZONY' %}
-                                <span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Gotowy</span>
+                                <span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony Ostatecznie!</span>
+                            {% elif p.status == 'SPRAWDZONY' %}
+                                <span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-thumbs-up me-1"></i>Zaakceptowany przez Szefa</span>
+                            {% elif p.status == 'WERYFIKACJA' %}
+                                <span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Wysłano do akceptacji</span>
+                            {% elif p.status == 'DO_POPRAWY' %}
+                                <span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-circle-exclamation me-1"></i>Wymaga poprawy!</span>
                             {% else %}
-                                <span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>W edycji</span>
+                                <span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>Szkic roboczy</span>
                             {% endif %}
                         </td>
                         <td class="text-end pe-4 text-nowrap">

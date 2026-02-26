@@ -226,6 +226,18 @@
 </div>
 
 <div class="container editor-container mb-5">
+
+    {% if przedmiot.status == 'DO_POPRAWY' %}
+    <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 mb-4 bg-white">
+        <h5 class="alert-heading fw-bold mb-1 text-danger"><i class="fa-solid fa-comment-dots me-2"></i>Sylabus został cofnięty do poprawy!</h5>
+        <hr>
+        <p class="mb-0 fw-bold">Uwagi od Koordynatora Kierunku:</p>
+        <div class="p-3 bg-light rounded mt-2 border text-dark">
+            {{ przedmiot.uwagi_statusu|default:"Brak uwag. Skontaktuj się z kierownikiem."|linebreaksbr }}
+        </div>
+    </div>
+    {% endif %}
+
     {% if form.errors %}
     <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 mb-4 bg-white">
         <h5 class="alert-heading fw-bold mb-1 text-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>Wystąpił błąd podczas zapisu</h5>
@@ -462,9 +474,11 @@
                     <span>Tryb edycji aktywny</span>
                 </div>
                 <div class="d-flex gap-3">
-                    <a href="/" class="btn btn-outline-secondary px-4">Anuluj zmiany</a>
-                    <a href="/pdf/{{ przedmiot.id }}/" class="btn btn-outline-danger px-4" target="_blank"><i class="fa-solid fa-file-pdf me-2"></i>Podgląd PDF</a>
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm"><i class="fa-solid fa-floppy-disk me-2"></i>Zapisz Sylabus</button>
+                    <a href="/" class="btn btn-outline-secondary px-4">Anuluj</a>
+                    <a href="/pdf/{{ przedmiot.id }}/" class="btn btn-outline-danger px-4" target="_blank"><i class="fa-solid fa-file-pdf me-2"></i>PDF</a>
+
+                    <button type="submit" name="zapisz_roboczy" class="btn btn-outline-primary px-4 shadow-sm bg-white"><i class="fa-solid fa-floppy-disk me-2"></i>Zapisz szkic</button>
+                    <button type="submit" name="przekaz_dalej" class="btn btn-success px-5 shadow-sm fw-bold"><i class="fa-solid fa-paper-plane me-2"></i>Przekaż do sprawdzenia</button>
                 </div>
             </div>
         </div>

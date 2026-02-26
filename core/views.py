@@ -70,7 +70,20 @@ def zarzadzaj_przedmiotem(request, przedmiot_id=None):
         form = PrzedmiotForm(request.POST, instance=przedmiot)
         if form.is_valid():
             p = form.save(commit=False)
-            k, s, t = form.cleaned_data['kierunek'], form.cleaned_data['semestr'], form.cleaned_data['typ_zajec']
+
+            # --- ZABEZPIECZENIE BACKENDU (BLOKADA OBIEGU) ---
+            # Jeśli Koordynator Kierunku zhakowałby przycisk "Zatwierdź Ostatecznie", system go zablokuje
+            if not is_dean and p.status == 'ZATWIERDZONY':
+                p.status = 'SPRAWDZONY'
+
+            # Czyszczenie uwag przy akceptacji
+            if p.status in ['SPRAWDZONY', 'ZATWIERDZONY']:
+                p.uwagi_statusu = ""
+
+            k = form.cleaned_data['kierunek']
+            s = form.cleaned_data['semestr']
+            t = form.cleaned_data['typ_zajec']
+
             modul, _ = Modul.objects.get_or_create(
                 kierunek=k, semestr=s, typ=t,
                 defaults={'kod_modulu': f"{k.nazwa[:3].upper()}-{s}-{t[:3].upper()}", 'nazwa': f"{t} - Semestr {s}",
@@ -78,21 +91,17 @@ def zarzadzaj_przedmiotem(request, przedmiot_id=None):
             )
             p.modul = modul
             p.save()
-            form.save_m2m()  # Zapisujemy podstawowe M2M (np. koordynatorów)
+            form.save_m2m()
 
-            # --- NAPRAWA ZAPISU EFEKTÓW ---
-            # 1. Usuwamy te, które Prodziekan zaznaczył do kosza
             usun_ids = request.POST.getlist('usun_efekt')
             if usun_ids:
-                p.efekty_kierunkowe.filter(id__in=usun_ids).delete()
+                p.efekty_kierunkowe.remove(*usun_ids)
 
-            # 2. Dodajemy zupełnie nowe efekty z pól tekstowych
             katy = request.POST.getlist('nowy_efekt_kat')
             opisy = request.POST.getlist('nowy_efekt_opis')
 
             for kt, op in zip(katy, opisy):
                 if op.strip():
-                    # Liczymy ile jest efektów w tej kategorii, żeby nadać numer (np. K_W03)
                     istniejace = EfektKierunkowy.objects.filter(kategoria=kt)
                     max_num = 0
                     for e in istniejace:
@@ -101,13 +110,13 @@ def zarzadzaj_przedmiotem(request, przedmiot_id=None):
 
                     nowy_kod = f"K_{kt}{max_num + 1:02d}"
                     ne = EfektKierunkowy.objects.create(kod=nowy_kod, kategoria=kt, opis=op.strip())
-                    p.efekty_kierunkowe.add(ne)  # DODAJEMY DO PRZEDMIOTU
+                    p.efekty_kierunkowe.add(ne)
 
-            p.save()  # Finałowy zapis
+            p.save()
             return redirect('lista_przedmiotow')
     else:
         initial_data = {}
-        if przedmiot and przedmiot.modul:
+        if przedmiot and hasattr(przedmiot, 'modul'):
             initial_data = {'kierunek': przedmiot.modul.kierunek, 'semestr': przedmiot.modul.semestr,
                             'typ_zajec': przedmiot.modul.typ}
         form = PrzedmiotForm(instance=przedmiot, initial=initial_data)
@@ -121,9 +130,10 @@ def edycja_sylabusa(request, przedmiot_id):
     wykladowca = getattr(request.user, 'wykladowca', None)
 
     if not request.user.is_superuser and wykladowca not in przedmiot.koordynatorzy.all():
-        return HttpResponseForbidden("Brak uprawnień.")
+        return HttpResponseForbidden("Brak uprawnień do edycji tego sylabusa.")
 
     sylabus, _ = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
+
     if request.method == 'POST':
         form = SylabusForm(request.POST, instance=sylabus)
         if form.is_valid():
@@ -132,7 +142,6 @@ def edycja_sylabusa(request, przedmiot_id):
             if wybrane is not None:
                 przedmiot.efekty_kierunkowe.set(wybrane)
 
-            # Harmonogram Smart Paste
             raw = form.cleaned_data.get('harmonogram_raw')
             if raw:
                 TrescZajec.objects.filter(przedmiot=przedmiot).delete()
@@ -140,6 +149,14 @@ def edycja_sylabusa(request, przedmiot_id):
                     if line.strip():
                         TrescZajec.objects.create(przedmiot=przedmiot, numer_tematu=i, temat=line.strip(),
                                                   liczba_godzin=2)
+
+                        # --- Przekazanie do szefa po poprawkach ---
+                        if 'przekaz_dalej' in request.POST:
+                            przedmiot.status = 'WERYFIKACJA'  # <-- ZMIANA: Wykładowca wysyła do weryfikacji!
+                            przedmiot.uwagi_statusu = ""
+                            przedmiot.save()
+                            return redirect('lista_przedmiotow')
+
             return redirect('edycja_sylabusa', przedmiot_id=przedmiot.id)
     else:
         harmonogram_text = "\n".join(
@@ -148,10 +165,8 @@ def edycja_sylabusa(request, przedmiot_id):
             "efekty_kierunkowe": przedmiot.efekty_kierunkowe.all(),
             "harmonogram_raw": harmonogram_text
         })
-        # WAŻNE: Ograniczamy listę efektów tylko do tych, które Prodziekan przypisał do tego przedmiotu
         form.fields["efekty_kierunkowe"].queryset = przedmiot.efekty_kierunkowe.all()
 
-    # Logika dekodowania tematów do widoku (wykłady/ćwiczenia)
     tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
     tematy_zdekodowane = []
     counters = {}
@@ -161,7 +176,7 @@ def edycja_sylabusa(request, przedmiot_id):
             end_idx = tresc.find(']')
             if end_idx != -1:
                 meta, tresc = tresc[1:end_idx], tresc[end_idx + 1:].strip()
-                parts = meta.split('|');
+                parts = meta.split('|')
                 forma = parts[0].strip()
                 if len(parts) > 1: efekty = parts[1].strip()
         counters[forma] = counters.get(forma, 0) + 1
@@ -182,25 +197,24 @@ def pobierz_pdf(request, przedmiot_id):
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
     sylabus, _ = SzczegolySylabusa.objects.get_or_create(przedmiot=przedmiot)
 
-    # 1. PRZYGOTOWANIE HARMONOGRAMU (TEMATY)
-    tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
-    tematy_zdekodowane = []
-    counters = {}
-    for t in tematy_db:
-        tresc, forma, efekty = t.temat, 'wykład', ''
-        if tresc.startswith('['):
-            end_idx = tresc.find(']')
-            if end_idx != -1:
-                meta, tresc = tresc[1:end_idx], tresc[end_idx + 1:].strip()
-                parts = meta.split('|')
-                forma = parts[0].strip()
-                if len(parts) > 1: efekty = parts[1].strip()
-        counters[forma] = counters.get(forma, 0) + 1
-        tematy_zdekodowane.append({'lp': counters[forma], 'tresc': tresc, 'efekty': efekty, 'forma': forma})
+    # 1. OBLICZANIE GODZIN (OBCIĄŻENIE STUDENTA)
+    p_cw = sylabus.pw_przygotowanie_cw or 0
+    p_lab = sylabus.pw_sprawozdania or 0
+    p_proj = sylabus.pw_projekt or 0
+    p_wyk = sylabus.pw_wyklad or 0
+    p_egz = sylabus.pw_egzamin or 0
+    p_lit = sylabus.pw_literatura or 0
+    sum_wla = p_cw + p_lab + p_proj + p_wyk + p_egz + p_lit
 
-    # 2. ROZKODOWANIE CELÓW I METOD Z POLA UKRYTEGO
+    h_egz = 2 if p_egz > 0 else 0
+    sum_kon = (przedmiot.godz_wyklad + przedmiot.godz_cwiczenia +
+               przedmiot.godz_lab + przedmiot.godz_projekt +
+               przedmiot.godz_seminarium + h_egz)
+    sum_tot = sum_kon + sum_wla
+
+    # 2. DEKODOWANIE CELÓW I METOD (Z pola ukrytego w formie)
     cele_lista = []
-    metody_dict = {'W': '-', 'U': '-', 'K': '-'}
+    metody = {'W': '-', 'U': '-', 'K': '-'}
     if sylabus.opis_wstepny:
         mode = 'cele'
         for line in sylabus.opis_wstepny.split('\n'):
@@ -211,62 +225,64 @@ def pobierz_pdf(request, przedmiot_id):
                 continue
             parts = [p.strip() for p in line.split('|')]
             if mode == 'cele' and len(parts) >= 3:
-                cele_lista.append({'kategoria': parts[0], 'kod': parts[1], 'tresc': parts[2]})
+                cele_lista.append({'kat': parts[0], 'kod': parts[1], 'tresc': parts[2]})
             elif mode == 'metody' and len(parts) >= 2:
-                metody_dict[parts[0]] = parts[1]
+                metody[parts[0]] = parts[1]
 
-    # 3. PRZYGOTOWANIE MATRYCY EFEKTÓW (Z PODZIAŁEM NA W, U, K)
+    # 3. GRUPOWANIE EFEKTÓW (W, U, K) DO TABELI MATRYCY
     efekty_W, efekty_U, efekty_K = [], [], []
-    licznik_W, licznik_U, licznik_K = 1, 1, 1
+    kierunkowe = przedmiot.efekty_kierunkowe.all().order_by('kategoria', 'kod')
 
-    for e in przedmiot.efekty_kierunkowe.all().order_by('kategoria', 'kod'):
-        # Szukamy, które cele pasują do tej kategorii
-        cele_dla_kategorii = [c['kod'] for c in cele_lista if c['kategoria'] == e.kategoria]
-        cele_str = ", ".join(cele_dla_kategorii) if cele_dla_kategorii else "-"
-        metoda = metody_dict.get(e.kategoria, "-")
+    # Przypisywanie wszystkich celów z danej kategorii do efektów w tej samej kategorii
+    cele_W = ", ".join([c['kod'] for c in cele_lista if c['kat'] == 'W'])
+    cele_U = ", ".join([c['kod'] for c in cele_lista if c['kat'] == 'U'])
+    cele_K = ", ".join([c['kod'] for c in cele_lista if c['kat'] == 'K'])
 
+    c_w, c_u, c_k = 1, 1, 1
+    for e in kierunkowe:
         if e.kategoria == 'W':
-            efekty_W.append(
-                {'symbol': f"EU_W{licznik_W:02d}", 'opis': e.opis, 'kod': e.kod, 'cele': cele_str, 'metoda': metoda})
-            licznik_W += 1
+            efekty_W.append({'symbol': f'EU_W{c_w:02d}', 'opis': e.opis, 'kod': e.kod, 'cele': cele_W,
+                             'metoda': metody.get('W', '-')})
+            c_w += 1
         elif e.kategoria == 'U':
-            efekty_U.append(
-                {'symbol': f"EU_U{licznik_U:02d}", 'opis': e.opis, 'kod': e.kod, 'cele': cele_str, 'metoda': metoda})
-            licznik_U += 1
+            efekty_U.append({'symbol': f'EU_U{c_u:02d}', 'opis': e.opis, 'kod': e.kod, 'cele': cele_U,
+                             'metoda': metody.get('U', '-')})
+            c_u += 1
         elif e.kategoria == 'K':
-            efekty_K.append(
-                {'symbol': f"EU_K{licznik_K:02d}", 'opis': e.opis, 'kod': e.kod, 'cele': cele_str, 'metoda': metoda})
-            licznik_K += 1
+            efekty_K.append({'symbol': f'EU_K{c_k:02d}', 'opis': e.opis, 'kod': e.kod, 'cele': cele_K,
+                             'metoda': metody.get('K', '-')})
+            c_k += 1
 
-    # 4. OBLICZENIA MATEMATYCZNE GODZIN (DLA TABELI OBCIĄŻEŃ)
-    p_cw = sylabus.pw_przygotowanie_cw or 0
-    p_lab = sylabus.pw_sprawozdania or 0
-    p_proj = sylabus.pw_projekt or 0
-    p_wyk = sylabus.pw_wyklad or 0
-    p_egz = sylabus.pw_egzamin or 0
-    p_lit = sylabus.pw_literatura or 0
+    # 4. DEKODOWANIE HARMONOGRAMU Z BAZY DANYCH
+    tematy_db = TrescZajec.objects.filter(przedmiot=przedmiot).order_by('numer_tematu')
+    tematy = []
+    counters = {}
+    for t in tematy_db:
+        tresc, forma, efekty = t.temat, 'wykład', '-'
+        if tresc.startswith('['):
+            end_idx = tresc.find(']')
+            if end_idx != -1:
+                meta, tresc = tresc[1:end_idx], tresc[end_idx + 1:].strip()
+                parts = [p.strip() for p in meta.split('|')]
+                forma = parts[0]
+                if len(parts) > 1 and parts[1]: efekty = parts[1]
+        counters[forma] = counters.get(forma, 0) + 1
+        tematy.append({'lp': counters[forma], 'tresc': tresc, 'efekty': efekty, 'forma': forma.capitalize()})
 
-    h_egz = 2 if p_egz > 0 else 0
-    sum_kon = przedmiot.godz_wyklad + przedmiot.godz_cwiczenia + przedmiot.godz_lab + przedmiot.godz_projekt + przedmiot.godz_seminarium + h_egz
-    sum_wla = p_cw + p_lab + p_proj + p_wyk + p_egz + p_lit
-    sum_tot = sum_kon + sum_wla
-
-    # 5. WYSYŁKA WSZYSTKIEGO DO SZABLONU PDF
-    html_string = render_to_string('core/sylabus_pdf.html', {
+    # Pakujemy to wszystko do worka i wysyłamy do HTML-a
+    context = {
         'przedmiot': przedmiot,
         'sylabus': sylabus,
-        'tematy': tematy_zdekodowane,
         'cele_lista': cele_lista,
         'efekty_W': efekty_W,
         'efekty_U': efekty_U,
         'efekty_K': efekty_K,
+        'tematy': tematy,
         'p_cw': p_cw, 'p_lab': p_lab, 'p_proj': p_proj, 'p_wyk': p_wyk, 'p_egz': p_egz, 'p_lit': p_lit,
-        'h_egz': h_egz,
-        'sum_kon': sum_kon,
-        'sum_wla': sum_wla,
-        'sum_tot': sum_tot
-    })
+        'h_egz': h_egz, 'sum_kon': sum_kon, 'sum_wla': sum_wla, 'sum_tot': sum_tot
+    }
 
+    html_string = render_to_string('core/sylabus_pdf.html', context)
     return HttpResponse(HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(),
                         content_type='application/pdf')
 
@@ -276,8 +292,8 @@ def dodaj_wykladowce(request):
     if not request.user.is_superuser: return HttpResponseForbidden()
     form = WykladowcaUserForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        u = form.save(commit=False);
-        u.set_password(form.cleaned_data['password']);
+        u = form.save(commit=False)
+        u.set_password(form.cleaned_data['password'])
         u.save()
         Wykladowca.objects.create(user=u, tytul=form.cleaned_data['tytul'], katedra=form.cleaned_data['katedra'])
         return redirect('lista_przedmiotow')
@@ -288,5 +304,7 @@ def dodaj_wykladowce(request):
 def dodaj_kierunek(request):
     if not request.user.is_superuser: return HttpResponseForbidden()
     form = KierunekForm(request.POST or None)
-    if form.is_valid(): form.save(); return redirect('lista_przedmiotow')
+    if form.is_valid():
+        form.save()
+        return redirect('lista_przedmiotow')
     return render(request, 'core/formularz_uniwersalny.html', {'form': form, 'tytul': 'Dodaj Kierunek'})

@@ -44,12 +44,13 @@ class PrzedmiotForm(forms.ModelForm):
 
     class Meta:
         model = Przedmiot
-        fields = ['status', 'nazwa_pl', 'nazwa_en', 'kod_przedmiotu', 'ects', 'jezyk_wykladowy', 'cykl_dydaktyczny',
+        fields = ['status', 'uwagi_statusu', 'nazwa_pl', 'nazwa_en', 'kod_przedmiotu', 'ects', 'jezyk_wykladowy', 'cykl_dydaktyczny',
                   'badania_naukowe', 'godz_wyklad', 'godz_cwiczenia', 'godz_lab', 'godz_projekt', 'godz_seminarium',
                   'godz_egzamin', 'koordynatorzy']
         widgets = {
             'koordynatorzy': forms.CheckboxSelectMultiple(),
-            'status': forms.Select(attrs={'class': 'form-select'})
+            'status': forms.Select(attrs={'class': 'form-select border-primary shadow-sm fw-bold'}),
+            'uwagi_statusu': forms.Textarea(attrs={'class': 'form-control border-danger shadow-sm', 'rows': 2, 'placeholder': 'Wpisz uwagi dla wykładowcy (jeśli odrzucasz sylabus)...'})
         }
 
 
