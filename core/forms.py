@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import SzczegolySylabusa, Przedmiot, EfektKierunkowy, Wykladowca, Modul, KierunekStudiow
 
-
 class SylabusForm(forms.ModelForm):
     efekty_kierunkowe = forms.ModelMultipleChoiceField(
         queryset=EfektKierunkowy.objects.all(),
@@ -16,7 +15,8 @@ class SylabusForm(forms.ModelForm):
 
     class Meta:
         model = SzczegolySylabusa
-        exclude = ['przedmiot']
+        # WYRZUCONO: 'inne_informacje' z listy edytowalnej (związek z badaniami)
+        exclude = ['przedmiot', 'inne_informacje']
         widgets = {
             'wymagania_wstepne': forms.Textarea(
                 attrs={'class': 'form-control shadow-sm', 'rows': 3, 'placeholder': 'Wpisz wymagania...'}),
@@ -27,7 +27,7 @@ class SylabusForm(forms.ModelForm):
             'wymagania_obecnosci': forms.Textarea(attrs={'class': 'form-control shadow-sm', 'rows': 3}),
             'literatura': forms.Textarea(
                 attrs={'class': 'form-control shadow-sm', 'rows': 4, 'placeholder': '1. Autor, Tytuł, Wydawnictwo...'}),
-            'inne_informacje': forms.Textarea(attrs={'class': 'form-control shadow-sm', 'rows': 3}),
+            # USUNIĘTO WIDGET DLA 'inne_informacje'
         }
 
     def __init__(self, *args, **kwargs):
@@ -85,14 +85,12 @@ class WykladowcaUserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email']
-        # Wymuszamy polskie nazwy dla wbudowanych pól Django
         labels = {
             'username': 'Nazwa użytkownika (Login)',
             'first_name': 'Imię',
             'last_name': 'Nazwisko',
             'email': 'Adres e-mail',
         }
-        # Podmieniamy ten długi angielski tekst z instrukcją do loginu
         help_texts = {
             'username': 'Maksymalnie 150 znaków. Dozwolone litery, cyfry oraz znaki @/./+/-/_',
         }

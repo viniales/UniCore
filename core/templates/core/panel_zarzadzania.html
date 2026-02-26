@@ -137,11 +137,16 @@
                             <td>
                                 <span class="badge bg-primary-subtle text-primary px-2 py-1 fs-6 rounded-3">{{ p.ects }}</span>
                             </td>
-                            <td class="text-end pe-4">
+
+                            <td class="text-end pe-4 text-nowrap">
                                 <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-light border px-3 py-2 rounded-3 text-primary fw-bold shadow-sm hover-primary">
                                     <i class="fa-solid fa-gear me-2"></i>Struktura
                                 </a>
+                                <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-2 rounded-3 px-3 py-2 shadow-sm" target="_blank" title="Pobierz i sprawdź PDF">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </a>
                             </td>
+
                         </tr>
                         {% endif %}{% endfor %}
                     </tbody>
@@ -190,7 +195,7 @@
                                 <span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>W edycji</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-4">
+                        <td class="text-end pe-4 text-nowrap">
                             <a href="{% url 'edycja_sylabusa' p.id %}" class="btn btn-sm btn-success px-3 py-2 rounded-3 shadow-sm fw-bold">
                                 <i class="fa-solid fa-pen-to-square me-2"></i>Edytuj
                             </a>

@@ -98,7 +98,7 @@
         </tr>
         <tr>
             <td class="gray">Przedmiot związany z badaniami naukowymi</td>
-            <td class="center">Tak/Nie</td>
+            <td class="center fw-bold">{% if przedmiot.badania_naukowe %}Tak{% else %}Nie{% endif %}</td>
         </tr>
         <tr>
             <td class="gray">Koordynatorzy przedmiotów<br><small>(Imię, nazwisko, katedra, adres e-mail)</small></td>
@@ -262,7 +262,6 @@
         1. Metody nauczania: {{ sylabus.metody_nauczania|default:"-" }}<br>
         2. Weryfikacja: {{ sylabus.formy_oceny|default:"-" }}<br>
         3. Zasady oceniania: {{ sylabus.zasady_oceniania|default:"-" }}<br>
-        4. Badania: {{ sylabus.inne_informacje|default:"-" }}
     </div>
 
 </body>
