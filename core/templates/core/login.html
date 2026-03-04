@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Logowanie - System Sylabusów</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            /* Głębokie, profesjonalne tło pasujące do nagłówka z panelu */
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            padding: 3.5rem 2.5rem;
+            margin: 20px;
+        }
+
+        .app-icon {
+            width: 72px;
+            height: 72px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .form-control {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.8rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 8px;
+        }
+
+        .form-control:focus {
+            background-color: #fff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            outline: none;
+        }
+
+        .input-group-text {
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+            color: #94a3b8;
+            border-radius: 8px;
+        }
+
+        .btn-primary {
+            padding: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            background-color: #2563eb;
+            border: none;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="text-center mb-4 pb-2">
+            <div class="app-icon shadow-sm">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">System Sylabusów</h3>
+            <p class="text-muted small">Zaloguj się, aby uzyskać dostęp</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="alert alert-danger py-2 px-3 small border-0 border-start border-danger border-4 shadow-sm mb-4">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i> Nieprawidłowy login lub hasło. Spróbuj ponownie.
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary text-uppercase mb-2" style="letter-spacing: 1px;">Nazwa użytkownika</label>
+                <div class="input-group shadow-sm rounded-3">
+                    <span class="input-group-text border-end-0"><i class="fa-solid fa-user"></i></span>
+                    <input type="text" name="username" class="form-control border-start-0 ps-0" placeholder="Wpisz swój login" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-4 pb-2">
+                <label class="form-label small fw-bold text-secondary text-uppercase mb-2" style="letter-spacing: 1px;">Hasło</label>
+                <div class="input-group shadow-sm rounded-3">
+                    <span class="input-group-text border-end-0"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control border-start-0 ps-0" placeholder="Wpisz hasło" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 shadow">
+                Zaloguj się <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
+            </button>
+            <input type="hidden" name="next" value="{{ next|default:'/' }}">
+        </form>
+
+        <div class="text-center mt-5 pt-3 border-top">
+            <span class="text-muted" style="font-size: 0.75rem;">Wydział Informatyki &copy; 2026<br>Zaprojektowano dla procesów akademickich</span>
+        </div>
+    </div>
+
+</body>
+</html>
