@@ -44,7 +44,7 @@ class Modul(models.Model):
 class Przedmiot(models.Model):
     STATUSY = [
         ('ROBOCZY', 'W edycji (Wykładowca)'),
-        ('WERYFIKACJA', 'Do sprawdzenia (Szef Kierunku)'),
+        ('WERYFIKACJA', 'Do sprawdzenia (Koordynator Kierunku)'),
         ('DO_POPRAWY', 'Do poprawy (Odrzucony)'),
         ('SPRAWDZONY', 'Sprawdzony (Koordynator Kierunku)'),
         ('ZATWIERDZONY', 'Zatwierdzony (Prodziekan)')
@@ -69,7 +69,6 @@ class Przedmiot(models.Model):
     koordynatorzy = models.ManyToManyField(Wykladowca, related_name='przypisane_przedmioty', blank=True)
     def __str__(self): return self.nazwa_pl
 
-# --- NOWY MODEL CZATU ---
 class Komentarz(models.Model):
     przedmiot = models.ForeignKey(Przedmiot, on_delete=models.CASCADE, related_name='komentarze')
     autor = models.ForeignKey(User, on_delete=models.CASCADE)

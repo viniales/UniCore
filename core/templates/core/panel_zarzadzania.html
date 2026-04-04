@@ -126,7 +126,7 @@
                             <td>
                                 {% if p.status == 'ZATWIERDZONY' %}<span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony ostatecznie</span>
                                 {% elif p.status == 'SPRAWDZONY' %}{% if is_dean %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie (Prodziekan)</span>{% else %}<span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Przekazano Prodziekanowi</span>{% endif %}
-                                {% elif p.status == 'WERYFIKACJA' %}{% if is_dean %}<span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-hourglass-start me-1"></i>Czeka na Szefa Kierunku</span>{% else %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie</span>{% endif %}
+                                {% elif p.status == 'WERYFIKACJA' %}{% if is_dean %}<span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-hourglass-start me-1"></i>Czeka na Koordynatora Kierunku</span>{% else %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie</span>{% endif %}
                                 {% elif p.status == 'DO_POPRAWY' %}<span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-triangle-exclamation me-1"></i>Odrzucony do poprawy</span>
                                 {% else %}<span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-pen-nib me-1"></i>W edycji u prowadzącego</span>{% endif %}
                             </td>
@@ -177,7 +177,7 @@
                         </td>
                         <td>
                             {% if p.status == 'ZATWIERDZONY' %}<span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony Ostatecznie!</span>
-                            {% elif p.status == 'SPRAWDZONY' %}<span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-thumbs-up me-1"></i>Zaakceptowany przez Szefa</span>
+                            {% elif p.status == 'SPRAWDZONY' %}<span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-thumbs-up me-1"></i>Zaakceptowany przez Koordynatora</span>
                             {% elif p.status == 'WERYFIKACJA' %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Wysłano do akceptacji</span>
                             {% elif p.status == 'DO_POPRAWY' %}<span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-circle-exclamation me-1"></i>Wymaga poprawy!</span>
                             {% else %}<span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>Szkic roboczy</span>{% endif %}
