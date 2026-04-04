@@ -1,30 +1,12 @@
 {% extends 'core/base.html' %}
 {% block content %}
 <style>
-    :root {
-        --primary-blue: #2563eb;
-        --primary-green: #10b981;
-        --bg-color: #f8fafc;
-        --card-border: #e2e8f0;
-    }
-
+    :root { --primary-blue: #2563eb; --primary-green: #10b981; --bg-color: #f8fafc; --card-border: #e2e8f0; }
     body { background-color: var(--bg-color); }
-
-    .semester-card {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid var(--card-border);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        padding: 1.25rem;
-    }
-    .semester-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-    }
-
+    .semester-card { background: white; border-radius: 12px; border: 1px solid var(--card-border); transition: transform 0.2s ease, box-shadow 0.2s ease; padding: 1.25rem; }
+    .semester-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
     .ects-progress { height: 6px; border-radius: 3px; background-color: #e2e8f0; overflow: hidden; margin: 10px 0; }
     .ects-bar { height: 100%; transition: width 0.3s ease; }
-
     .table-modern { border-collapse: separate; border-spacing: 0 0.5rem; }
     .table-modern th { border: none; color: #64748b; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.5px; padding-bottom: 0.5rem; }
     .table-modern tr { background-color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: box-shadow 0.2s; }
@@ -32,28 +14,37 @@
     .table-modern td { padding: 1rem 1.25rem; border: none; border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); vertical-align: middle; }
     .table-modern td:first-child { border-left: 1px solid var(--card-border); border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
     .table-modern td:last-child { border-right: 1px solid var(--card-border); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
-
     .status-pill { padding: 0.35rem 0.8rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
-
     .section-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; }
-    .section-icon-box {
-        width: 36px; height: 36px; border-radius: 8px;
-        display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    .section-icon-box { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="container py-4">
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 p-3 bg-primary text-white d-flex flex-row align-items-center justify-content-between rounded-4">
+                <div class="fw-bold fs-5"><i class="fa-solid fa-calendar-check me-2"></i> Przeglądasz rok akademicki: {{ wybrany_rok }}</div>
+                <form method="get" class="d-flex gap-2 align-items-center mb-0">
+                    <label class="small fw-bold text-nowrap mb-0">Zmień rok:</label>
+                    <select name="rok" class="form-select form-select-sm fw-bold" onchange="this.form.submit()" style="min-width: 150px;">
+                        {% for r in wszystkie_lata %}
+                            <option value="{{ r }}" {% if r == wybrany_rok %}selected{% endif %}>{{ r }}</option>
+                        {% empty %}
+                            <option value="">Brak danych</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
         <div>
             <h1 class="fw-bold text-dark mb-1 fs-3"><i class="fa-solid fa-layer-group text-primary me-2"></i>{{ tryb }}</h1>
             <p class="text-muted small mb-0">System zarządzania programami studiów</p>
         </div>
-
         {% if is_dean %}
         <div class="d-flex gap-2">
             <a href="{% url 'dodaj_wykladowce' %}" class="btn btn-outline-secondary rounded-3 px-3 shadow-sm bg-white"><i class="fa-solid fa-user-plus me-2"></i>Wykładowca</a>
@@ -70,7 +61,6 @@
                 <div class="section-icon-box bg-primary shadow-sm"><i class="fa-solid fa-sliders"></i></div>
                 <h3 class="section-title mb-0">Nadzór nad Kierunkami</h3>
             </div>
-
             <div class="d-flex align-items-center bg-white p-2 rounded-3 shadow-sm border">
                 <label for="kierunekFilter" class="fw-bold text-secondary mb-0 me-3 ms-2 small text-uppercase">
                     <i class="fa-solid fa-filter me-1 text-primary"></i> Wybierz:
@@ -86,7 +76,14 @@
 
         {% for s_k in statystyki_ects %}
         <div class="kierunek-block mb-5 bg-white p-4 rounded-4 shadow-sm border border-light" data-kierunek-id="{{ s_k.nazwa|slugify }}">
-            <h5 class="fw-bold text-dark mb-4"><i class="fa-solid fa-folder-tree text-muted me-2"></i>{{ s_k.nazwa }}</h5>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-folder-tree text-muted me-2"></i>{{ s_k.nazwa }}</h5>
+                {% if is_dean %}
+                <button type="button" class="btn btn-sm btn-outline-primary shadow-sm fw-bold" onclick="openCloneKierunekModal('{{ s_k.id }}', '{{ s_k.nazwa|escapejs }}', '{{ wybrany_rok }}')">
+                    <i class="fa-solid fa-clone me-1"></i> Sklonuj kierunek
+                </button>
+                {% endif %}
+            </div>
 
             <div class="row g-3 mb-4">
                 {% for sem in s_k.semestry %}
@@ -96,17 +93,13 @@
                             <span class="small text-uppercase fw-bold text-muted">Semestr {{ sem.numer }}</span>
                             <i class="fa-solid {% if sem.alert %}fa-circle-exclamation text-danger{% else %}fa-circle-check text-success{% endif %}"></i>
                         </div>
-
                         <div class="d-flex align-items-baseline gap-1">
                             <span class="fs-4 fw-bold {% if sem.alert %}text-danger{% else %}text-dark{% endif %}">{{ sem.suma }}</span>
                             <span class="small text-muted">/ 30 ECTS</span>
                         </div>
-
                         <div class="ects-progress">
-                            <div class="ects-bar {% if sem.alert %}bg-danger{% else %}bg-primary{% endif %}"
-                                 style="width: {% widthratio sem.suma 30 100 %}%; max-width: 100%;"></div>
+                            <div class="ects-bar {% if sem.alert %}bg-danger{% else %}bg-primary{% endif %}" style="width: {% widthratio sem.suma 30 100 %}%; max-width: 100%;"></div>
                         </div>
-
                         <div class="small fw-semibold text-secondary mt-2"><i class="fa-solid fa-book me-1 opacity-50"></i> Przedmiotów: {{ sem.liczba }}</div>
                     </div>
                 </div>
@@ -129,37 +122,25 @@
                                 <div class="small fw-bold text-secondary">{{ p.modul.kierunek.nazwa }}</div>
                                 <span class="badge bg-light text-dark border mt-1">Semestr {{ p.modul.semestr }}</span>
                             </td>
+                            <td><span class="badge bg-primary-subtle text-primary px-2 py-1 fs-6 rounded-3">{{ p.ects }}</span></td>
                             <td>
-                                <span class="badge bg-primary-subtle text-primary px-2 py-1 fs-6 rounded-3">{{ p.ects }}</span>
-                            </td>
-                            <td>
-                                {% if p.status == 'ZATWIERDZONY' %}
-                                    <span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony ostatecznie</span>
-                                {% elif p.status == 'SPRAWDZONY' %}
-                                    {% if is_dean %}
-                                        <span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie (Prodziekan)</span>
-                                    {% else %}
-                                        <span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Przekazano Prodziekanowi</span>
-                                    {% endif %}
-                                {% elif p.status == 'WERYFIKACJA' %}
-                                    {% if is_dean %}
-                                        <span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-hourglass-start me-1"></i>Czeka na Szefa Kierunku</span>
-                                    {% else %}
-                                        <span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie</span>
-                                    {% endif %}
-                                {% elif p.status == 'DO_POPRAWY' %}
-                                    <span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-triangle-exclamation me-1"></i>Odrzucony do poprawy</span>
-                                {% else %}
-                                    <span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-pen-nib me-1"></i>W edycji u prowadzącego</span>
-                                {% endif %}
+                                {% if p.status == 'ZATWIERDZONY' %}<span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony ostatecznie</span>
+                                {% elif p.status == 'SPRAWDZONY' %}{% if is_dean %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie (Prodziekan)</span>{% else %}<span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Przekazano Prodziekanowi</span>{% endif %}
+                                {% elif p.status == 'WERYFIKACJA' %}{% if is_dean %}<span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-hourglass-start me-1"></i>Czeka na Szefa Kierunku</span>{% else %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-clock me-1"></i>Czeka na Ciebie</span>{% endif %}
+                                {% elif p.status == 'DO_POPRAWY' %}<span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-triangle-exclamation me-1"></i>Odrzucony do poprawy</span>
+                                {% else %}<span class="status-pill bg-light text-secondary border"><i class="fa-solid fa-pen-nib me-1"></i>W edycji u prowadzącego</span>{% endif %}
                             </td>
                             <td class="text-end pe-4 text-nowrap">
-                                <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-light border px-3 py-2 rounded-3 text-primary fw-bold shadow-sm hover-primary">
-                                    <i class="fa-solid fa-gear me-2"></i>Struktura
-                                </a>
-                                <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-2 rounded-3 px-3 py-2 shadow-sm" target="_blank" title="Pobierz i sprawdź PDF">
-                                    <i class="fa-solid fa-file-pdf"></i>
-                                </a>
+                                <a href="{% url 'zarzadzaj_przedmiotem' p.id %}" class="btn btn-sm btn-light border px-3 py-2 rounded-3 text-primary fw-bold shadow-sm hover-primary"><i class="fa-solid fa-gear me-2"></i>Struktura</a>
+
+                                {% if is_dean %}
+                                <button type="button" class="btn btn-sm btn-outline-primary ms-1 rounded-3 px-3 py-2 shadow-sm" title="Klonuj przedmiot (wybierz rok i kierunek)"
+                                        onclick="openCloneModal({{ p.id }}, '{{ p.nazwa_pl|escapejs }}', '{{ p.modul.kierunek.id }}', '{{ p.cykl_dydaktyczny }}')">
+                                    <i class="fa-solid fa-clone"></i>
+                                </button>
+                                {% endif %}
+
+                                <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-1 rounded-3 px-3 py-2 shadow-sm" target="_blank" title="Pobierz i sprawdź PDF"><i class="fa-solid fa-file-pdf"></i></a>
                             </td>
                         </tr>
                         {% endif %}{% endfor %}
@@ -168,11 +149,7 @@
             </div>
         </div>
         {% endfor %}
-
-        <div id="noResultsMsg" class="text-center py-5 text-muted" style="display: none;">
-            <i class="fa-solid fa-magnifying-glass fs-1 mb-3 opacity-25"></i>
-            <h5>Brak kierunków do wyświetlenia.</h5>
-        </div>
+        <div id="noResultsMsg" class="text-center py-5 text-muted" style="display: none;"><i class="fa-solid fa-magnifying-glass fs-1 mb-3 opacity-25"></i><h5>Brak kierunków do wyświetlenia.</h5></div>
     </div>
     {% endif %}
 
@@ -182,46 +159,32 @@
             <div class="section-icon-box shadow-sm" style="background-color: var(--primary-green);"><i class="fa-solid fa-pen-nib"></i></div>
             <h3 class="section-title mb-0">Twoje Sylabusy</h3>
         </div>
-
         <div class="table-responsive bg-white p-4 rounded-4 shadow-sm border border-light">
             <table class="table table-modern align-middle mb-0">
-                <thead>
-                    <tr><th class="ps-4">NAZWA PRZEDMIOTU</th><th>KIERUNEK</th><th>STATUS</th><th class="text-end pe-4">EDYCJA SYLABUSA</th></tr>
-                </thead>
+                <thead><tr><th class="ps-4">NAZWA PRZEDMIOTU</th><th>KIERUNEK</th><th>STATUS</th><th class="text-end pe-4">EDYCJA SYLABUSA</th></tr></thead>
                 <tbody>
                     {% for p in przedmioty %}{% if p.id in moje_przedmioty_ids %}
                     <tr>
                         <td class="ps-4" style="width: 40%;">
                             <div class="fw-bold text-dark fs-6">{{ p.nazwa_pl }}</div>
                             <div class="text-muted small d-flex gap-2 align-items-center">
-                                <span style="font-family: monospace;">{{ p.kod_przedmiotu }}</span>
-                                <span class="text-light-subtle">|</span>
-                                <span>ECTS: {{ p.ects }}</span>
+                                <span style="font-family: monospace;">{{ p.kod_przedmiotu }}</span><span class="text-light-subtle">|</span><span>ECTS: {{ p.ects }}</span>
                             </div>
                         </td>
                         <td>
                             <div class="small fw-bold text-secondary">{{ p.modul.kierunek.nazwa }}</div>
+                            <span class="badge bg-light text-dark border mt-1">Semestr {{ p.modul.semestr }}</span>
                         </td>
                         <td>
-                            {% if p.status == 'ZATWIERDZONY' %}
-                                <span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony Ostatecznie!</span>
-                            {% elif p.status == 'SPRAWDZONY' %}
-                                <span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-thumbs-up me-1"></i>Zaakceptowany przez Szefa</span>
-                            {% elif p.status == 'WERYFIKACJA' %}
-                                <span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Wysłano do akceptacji</span>
-                            {% elif p.status == 'DO_POPRAWY' %}
-                                <span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-circle-exclamation me-1"></i>Wymaga poprawy!</span>
-                            {% else %}
-                                <span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>Szkic roboczy</span>
-                            {% endif %}
+                            {% if p.status == 'ZATWIERDZONY' %}<span class="status-pill bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check-double me-1"></i>Zatwierdzony Ostatecznie!</span>
+                            {% elif p.status == 'SPRAWDZONY' %}<span class="status-pill bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-thumbs-up me-1"></i>Zaakceptowany przez Szefa</span>
+                            {% elif p.status == 'WERYFIKACJA' %}<span class="status-pill bg-info-subtle text-info-emphasis border border-info-subtle"><i class="fa-solid fa-paper-plane me-1"></i>Wysłano do akceptacji</span>
+                            {% elif p.status == 'DO_POPRAWY' %}<span class="status-pill bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-circle-exclamation me-1"></i>Wymaga poprawy!</span>
+                            {% else %}<span class="status-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-pen-nib me-1"></i>Szkic roboczy</span>{% endif %}
                         </td>
                         <td class="text-end pe-4 text-nowrap">
-                            <a href="{% url 'edycja_sylabusa' p.id %}" class="btn btn-sm btn-success px-3 py-2 rounded-3 shadow-sm fw-bold">
-                                <i class="fa-solid fa-pen-to-square me-2"></i>Edytuj
-                            </a>
-                            <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-2 rounded-3 px-3 py-2 shadow-sm" target="_blank" title="Pobierz PDF">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </a>
+                            <a href="{% url 'edycja_sylabusa' p.id %}" class="btn btn-sm btn-success px-3 py-2 rounded-3 shadow-sm fw-bold"><i class="fa-solid fa-pen-to-square me-2"></i>Edytuj</a>
+                            <a href="{% url 'pobierz_pdf' p.id %}" class="btn btn-sm btn-outline-danger ms-2 rounded-3 px-3 py-2 shadow-sm" target="_blank" title="Pobierz PDF"><i class="fa-solid fa-file-pdf"></i></a>
                         </td>
                     </tr>
                     {% endif %}{% endfor %}
@@ -232,23 +195,123 @@
     {% endif %}
 </div>
 
+<div class="modal fade" id="cloneModal" tabindex="-1" aria-labelledby="cloneModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold" id="cloneModalLabel"><i class="fa-solid fa-clone me-2"></i>Klonowanie przedmiotu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="cloneForm" method="post" action="">
+          {% csrf_token %}
+          <div class="modal-body p-4">
+            <p class="text-muted small mb-4">Tworzysz dokładną kopię przedmiotu <strong id="cloneModalPrzedmiotNazwa" class="text-dark"></strong>. Wybierz docelowy kierunek oraz rok akademicki.</p>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary small text-uppercase">Wybierz Kierunek Docelowy</label>
+                <select name="kierunek_id" id="cloneKierunek" class="form-select border-primary shadow-sm" required>
+                    {% for kierunek in wszystkie_kierunki %}
+                        <option value="{{ kierunek.id }}">{{ kierunek.nazwa }} ({{ kierunek.get_poziom_display }}, {{ kierunek.get_forma_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary small text-uppercase">Nowy Rok Akademicki (Cykl)</label>
+                <input type="text" name="nowy_rok" id="cloneRok" class="form-control border-primary shadow-sm" placeholder="np. 2027/2028" required>
+                <div class="form-text small mt-1">Format: YYYY/YYYY</div>
+            </div>
+
+            <div class="alert alert-info py-2 px-3 small border-0 border-start border-info border-4 mt-4 mb-0">
+                <i class="fa-solid fa-info-circle me-1"></i> Skopiowany przedmiot otrzyma status <b>Roboczy</b> i czystą historię uwag.
+            </div>
+          </div>
+          <div class="modal-footer border-0 bg-light rounded-bottom-4">
+            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Anuluj</button>
+            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Utwórz kopię</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="cloneKierunekModal" tabindex="-1" aria-labelledby="cloneKierunekModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold" id="cloneKierunekModalLabel"><i class="fa-solid fa-layer-group me-2"></i>Klonowanie całego kierunku</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="cloneKierunekForm" method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="obecny_rok" id="cloneKierunekObecnyRok">
+          <div class="modal-body p-4">
+            <p class="text-muted small mb-4">Tworzysz dokładną kopię wszystkich przedmiotów z kierunku <strong id="cloneKierunekNazwa" class="text-dark"></strong> dla obecnie przeglądanego roku.</p>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary small text-uppercase">Na jaki rok akademicki sklonować?</label>
+                <input type="text" name="nowy_rok" id="cloneKierunekNowyRok" class="form-control border-primary shadow-sm" placeholder="np. 2027/2028" required>
+                <div class="form-text small mt-1">Zalecany format: YYYY/YYYY (np. 2026/2027)</div>
+            </div>
+
+            <div class="alert alert-info py-2 px-3 small border-0 border-start border-info border-4 mt-4 mb-0">
+                <i class="fa-solid fa-info-circle me-1"></i> Wszystkie przedmioty w nowym roku otrzymają status <b>Roboczy</b>. Zostanie powielona struktura i godziny, ale nie komentarze.
+            </div>
+          </div>
+          <div class="modal-footer border-0 bg-light rounded-bottom-4">
+            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Anuluj</button>
+            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Klonuj cały kierunek</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
 function filterKierunki() {
     const selectedId = document.getElementById('kierunekFilter').value;
     const blocks = document.querySelectorAll('.kierunek-block');
     let visibleCount = 0;
-
     blocks.forEach(block => {
         if (selectedId === 'all' || block.getAttribute('data-kierunek-id') === selectedId) {
-            block.style.display = 'block';
-            block.style.animation = 'fadeIn 0.3s ease-in-out';
-            visibleCount++;
-        } else {
-            block.style.display = 'none';
-        }
+            block.style.display = 'block'; block.style.animation = 'fadeIn 0.3s ease-in-out'; visibleCount++;
+        } else { block.style.display = 'none'; }
     });
-
     document.getElementById('noResultsMsg').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+function openCloneModal(przedmiotId, nazwa, obecnyKierunekId, obecnyRok) {
+    document.getElementById('cloneModalPrzedmiotNazwa').textContent = nazwa;
+    document.getElementById('cloneForm').action = '/klonuj-przedmiot/' + przedmiotId + '/';
+    document.getElementById('cloneKierunek').value = obecnyKierunekId;
+
+    let nRok = obecnyRok;
+    try {
+        let parts = obecnyRok.split('/');
+        if(parts.length === 2) {
+            nRok = (parseInt(parts[0]) + 1) + '/' + (parseInt(parts[1]) + 1);
+        }
+    } catch(e) {}
+    document.getElementById('cloneRok').value = nRok;
+
+    new bootstrap.Modal(document.getElementById('cloneModal')).show();
+}
+
+function openCloneKierunekModal(kierunekId, nazwa, obecnyRok) {
+    document.getElementById('cloneKierunekNazwa').textContent = nazwa;
+    document.getElementById('cloneKierunekForm').action = '/klonuj-kierunek/' + kierunekId + '/';
+    document.getElementById('cloneKierunekObecnyRok').value = obecnyRok;
+
+    let nRok = obecnyRok;
+    try {
+        let parts = obecnyRok.split('/');
+        if(parts.length === 2) {
+            nRok = (parseInt(parts[0]) + 1) + '/' + (parseInt(parts[1]) + 1);
+        }
+    } catch(e) {}
+    document.getElementById('cloneKierunekNowyRok').value = nRok;
+
+    new bootstrap.Modal(document.getElementById('cloneKierunekModal')).show();
 }
 </script>
 {% endblock %}

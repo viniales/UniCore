@@ -1,32 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
 class EfektUczenia(models.Model):
     KATEGORIE = [('W', 'Wiedza'), ('U', 'Umiejętności'), ('K', 'Kompetencje')]
     kod = models.CharField(max_length=20)
     kategoria = models.CharField(max_length=1, choices=KATEGORIE)
     opis = models.TextField()
-
     def __str__(self): return self.kod
-
 
 class Wykladowca(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     tytul = models.CharField(max_length=50, verbose_name="Tytuł", default="dr inż.")
     katedra = models.CharField(max_length=100, verbose_name="Katedra")
-
     def __str__(self): return f"{self.tytul} {self.user.first_name} {self.user.last_name}"
-
 
 class EfektKierunkowy(models.Model):
     TYPY = [('W', 'Wiedza'), ('U', 'Umiejętności'), ('K', 'Kompetencje')]
     kod = models.CharField(max_length=20, verbose_name="Kod efektu")
     opis = models.TextField(verbose_name="Treść efektu")
     kategoria = models.CharField(max_length=1, choices=TYPY, default='W')
-
     def __str__(self): return f"{self.kod} - {self.opis[:50]}..."
-
 
 class KierunekStudiow(models.Model):
     POZIOMY = [('1', 'Pierwszy stopień'), ('2', 'Drugi stopień')]
@@ -35,11 +28,8 @@ class KierunekStudiow(models.Model):
     wydzial = models.CharField(max_length=200, default="Wydział Informatyki")
     poziom = models.CharField(max_length=1, choices=POZIOMY, default='1')
     forma = models.CharField(max_length=1, choices=FORMY, default='S')
-    koordynator = models.ForeignKey(Wykladowca, on_delete=models.SET_NULL, null=True, blank=True,
-                                    related_name='koordynowane_kierunki')
-
+    koordynator = models.ForeignKey(Wykladowca, on_delete=models.SET_NULL, null=True, blank=True, related_name='koordynowane_kierunki')
     def __str__(self): return self.nazwa
-
 
 class Modul(models.Model):
     TYPY = [('Obowiązkowy', 'Obowiązkowy'), ('Wybieralny', 'Wybieralny')]
@@ -49,25 +39,19 @@ class Modul(models.Model):
     typ = models.CharField(max_length=20, choices=TYPY)
     semestr = models.IntegerField()
     wymagane_ects = models.IntegerField()
-
     def __str__(self): return f"{self.kod_modulu} ({self.typ})"
 
-
 class Przedmiot(models.Model):
-    # ROZBUDOWANE STATUSY AKCEPTACJI
     STATUSY = [
         ('ROBOCZY', 'W edycji (Wykładowca)'),
-        ('WERYFIKACJA', 'Do sprawdzenia (Szef Kierunku)'),  # <-- NOWE
+        ('WERYFIKACJA', 'Do sprawdzenia (Szef Kierunku)'),
         ('DO_POPRAWY', 'Do poprawy (Odrzucony)'),
         ('SPRAWDZONY', 'Sprawdzony (Koordynator Kierunku)'),
         ('ZATWIERDZONY', 'Zatwierdzony (Prodziekan)')
     ]
     modul = models.ForeignKey(Modul, on_delete=models.CASCADE, related_name='przedmioty')
     status = models.CharField(max_length=20, choices=STATUSY, default='ROBOCZY')
-
-    # NOWE POLE NA UWAGI OD SZEFA
     uwagi_statusu = models.TextField(blank=True, default="", verbose_name="Uwagi do sylabusa")
-
     nazwa_pl = models.CharField(max_length=255)
     nazwa_en = models.CharField(max_length=255, blank=True)
     kod_przedmiotu = models.CharField(max_length=50)
@@ -83,9 +67,15 @@ class Przedmiot(models.Model):
     godz_egzamin = models.IntegerField(default=0)
     efekty_kierunkowe = models.ManyToManyField(EfektKierunkowy, blank=True)
     koordynatorzy = models.ManyToManyField(Wykladowca, related_name='przypisane_przedmioty', blank=True)
-
     def __str__(self): return self.nazwa_pl
 
+# --- NOWY MODEL CZATU ---
+class Komentarz(models.Model):
+    przedmiot = models.ForeignKey(Przedmiot, on_delete=models.CASCADE, related_name='komentarze')
+    autor = models.ForeignKey(User, on_delete=models.CASCADE)
+    tresc = models.TextField()
+    data_utworzenia = models.DateTimeField(auto_now_add=True)
+    def __str__(self): return f"Komentarz {self.autor.username} - {self.data_utworzenia}"
 
 class SzczegolySylabusa(models.Model):
     przedmiot = models.OneToOneField(Przedmiot, on_delete=models.CASCADE, related_name='sylabus')
@@ -108,7 +98,6 @@ class SzczegolySylabusa(models.Model):
     pw_literatura = models.IntegerField(default=0, blank=True, null=True)
     literatura = models.TextField(blank=True, default="")
     inne_informacje = models.TextField(blank=True, default="")
-
 
 class TrescZajec(models.Model):
     przedmiot = models.ForeignKey(Przedmiot, on_delete=models.CASCADE, related_name='harmonogram')

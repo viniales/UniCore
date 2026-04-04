@@ -6,171 +6,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-light: #eff6ff;
-            --secondary-color: #475569;
-            --border-color: #e2e8f0;
-            --bg-gradient: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
-            --card-bg: #ffffff;
-            --success-color: #16a34a;
-            --danger-color: #dc2626;
-            --font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            font-family: var(--font-family);
-            color: #334155;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        /* Topbar i Header */
-        .page-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 2.5rem 0;
-            margin-bottom: 2.5rem;
-            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.15);
-            color: white;
-        }
-
-        .subject-title {
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.8rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .badge-custom {
-            font-weight: 500;
-            padding: 0.5em 0.8em;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            background: rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(4px);
-        }
-
-        /* Kontenery i Karty */
+        :root { --primary-color: #2563eb; --primary-light: #eff6ff; --secondary-color: #475569; --border-color: #e2e8f0; --bg-gradient: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%); --card-bg: #ffffff; --success-color: #16a34a; --danger-color: #dc2626; --font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-gradient); background-attachment: fixed; font-family: var(--font-family); color: #334155; line-height: 1.6; min-height: 100vh; }
+        .page-header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 2.5rem 0; margin-bottom: 2.5rem; box-shadow: 0 4px 20px rgba(30, 58, 138, 0.15); color: white; }
+        .subject-title { font-weight: 700; color: #ffffff; letter-spacing: -0.02em; margin-bottom: 0.8rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .badge-custom { font-weight: 500; padding: 0.5em 0.8em; border-radius: 6px; font-size: 0.85rem; background: rgba(255, 255, 255, 0.15); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); }
         .editor-container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
-
-        .section-card {
-            border: none;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            margin-bottom: 2.5rem;
-            border-radius: 12px;
-            background-color: var(--card-bg);
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .section-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        }
-
-        .section-header {
-            padding: 1.2rem 1.5rem;
-            font-weight: 600;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            font-size: 1.15rem;
-            letter-spacing: 0.02em;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
+        .section-card { border: none; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); margin-bottom: 2.5rem; border-radius: 12px; background-color: var(--card-bg); overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .section-card:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .section-header { padding: 1.2rem 1.5rem; font-weight: 600; color: #ffffff; display: flex; align-items: center; font-size: 1.15rem; letter-spacing: 0.02em; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .header-blue   { background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%); }
         .header-green  { background: linear-gradient(135deg, #237a57 0%, #5cb892 100%); }
         .header-orange { background: linear-gradient(135deg, #bd5d2a 0%, #e68d60 100%); }
         .header-purple { background: linear-gradient(135deg, #5b4d82 0%, #8c7eb6 100%); }
         .header-slate  { background: linear-gradient(135deg, #3f4e60 0%, #8393a7 100%); }
-
-        .section-icon {
-            margin-right: 12px;
-            color: #ffffff;
-            width: 28px;
-            text-align: center;
-            font-size: 1.25rem;
-            opacity: 0.9;
-        }
-
+        .section-icon { margin-right: 12px; color: #ffffff; width: 28px; text-align: center; font-size: 1.25rem; opacity: 0.9; }
         .card-body { padding: 2.5rem; }
-
-        /* Formularze i Inputy */
-        label {
-            font-weight: 600;
-            color: var(--secondary-color);
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            display: block;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .form-control, .form-select {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 0.6rem 0.8rem;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            background-color: #f8fafc;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-            border-color: var(--primary-color);
-        }
-
-        /* Panele Menadżerskie (Cele) */
-        .manager-col {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.5rem;
-            height: 100%;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-            position: relative;
-            overflow: hidden;
-        }
+        label { font-weight: 600; color: var(--secondary-color); margin-top: 1rem; margin-bottom: 0.5rem; display: block; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-control, .form-select { border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem 0.8rem; font-size: 0.95rem; transition: all 0.2s; background-color: #f8fafc; }
+        .form-control:focus, .form-select:focus { background-color: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); border-color: var(--primary-color); }
+        .manager-col { background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 1.5rem; height: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
         .manager-col::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
         .manager-col.border-w::before { background: #3b82f6; }
         .manager-col.border-u::before { background: #5cb892; }
         .manager-col.border-k::before { background: #e68d60; }
-
-        .manager-header {
-            font-size: 1rem;
-            color: #1e293b;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .cel-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem;
-            transition: border-color 0.2s;
-        }
+        .manager-header { font-size: 1rem; color: #1e293b; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+        .cel-item { display: flex; align-items: flex-start; margin-bottom: 0.75rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem; transition: border-color 0.2s; }
         .cel-item:focus-within { border-color: var(--primary-color); background: #fff;}
         .cel-badge { background-color: var(--primary-light); color: var(--primary-color); border: 1px solid #bfdbfe; margin-top: 0.2rem; margin-right: 0.75rem; padding: 0.35em 0.65em; font-weight: 600; }
-
-        /* Checkboxy */
         .checkbox-container { border: 1px solid var(--border-color); border-radius: 8px; max-height: 400px; overflow-y: auto; background: #fff; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02); }
         #id_efekty_kierunkowe { list-style: none; padding: 0; margin: 0; }
         #id_efekty_kierunkowe li { border-bottom: 1px solid var(--border-color); padding: 0.9rem 1.2rem; display: flex; align-items: center; transition: background-color 0.2s; }
@@ -178,27 +42,20 @@
         #id_efekty_kierunkowe li:hover { background: var(--primary-light); }
         #id_efekty_kierunkowe label { font-weight: 500; margin: 0; cursor: pointer; font-size: 0.95rem; color: #1e293b; text-transform: none; letter-spacing: normal; }
         #id_efekty_kierunkowe input[type="checkbox"] { margin-right: 1.2rem; transform: scale(1.3); cursor: pointer; accent-color: var(--primary-color); }
-
-        /* Harmonogram */
         .harm-group { border: 1px solid var(--border-color); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; background: #f8fafc; position: relative; border-left: 4px solid #d27346; }
         .harm-group-delete { position: absolute; top: 1rem; right: 1rem; color: #94a3b8; background: white; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; transition: all 0.2s; }
         .harm-group-delete:hover { color: white; background: var(--danger-color); border-color: var(--danger-color); }
         .harm-topic-row { display: flex; align-items: center; margin-bottom: 0.5rem; }
         .harm-topic-number { width: 30px; text-align: right; margin-right: 12px; color: #64748b; font-weight: 600; font-size: 0.9rem; }
-
-        /* Obciążenie Studenta */
         .hours-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 1.2rem 0; }
         .hours-row:last-child { border-bottom: none; }
         .hours-row span { font-weight: 500; color: #334155; }
         .hours-row input { text-align: right; width: 100px; font-weight: bold; color: var(--primary-color);}
-
-        /* Przyciski */
         .btn { font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 8px; transition: all 0.2s; }
         .btn-outline-light:hover { color: #1e3a8a; }
         .btn-outline-primary { color: var(--primary-color); border-color: var(--primary-color); border-width: 2px;}
         .btn-outline-primary:hover { background-color: var(--primary-light); color: var(--primary-color); }
         .btn-action-small { padding: 0.25rem 0.5rem; font-size: 0.875rem; border-radius: 6px; }
-
         .action-bar { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); padding: 1.2rem 0; box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.05); }
         .status-indicator { display: flex; align-items: center; color: var(--secondary-color); font-weight: 500; }
         .status-dot { width: 10px; height: 10px; background-color: var(--success-color); border-radius: 50%; margin-right: 10px; box-shadow: 0 0 0 3px #dcfce7; animation: pulse 2s infinite; }
@@ -218,7 +75,7 @@
                 </span>
                 <span class="badge-custom"><i class="fa-solid fa-hashtag me-1 opacity-75"></i> {{ przedmiot.kod_przedmiotu }}</span>
                 <span class="badge-custom"><i class="fa-solid fa-star me-1 text-warning"></i> ECTS: {{ przedmiot.ects }}</span>
-                <span class="badge-custom"><i class="fa-regular fa-calendar me-1 opacity-75"></i> Semestr {{ przedmiot.modul.semestr }}</span>
+                <span class="badge-custom"><i class="fa-regular fa-calendar me-1 opacity-75"></i> Semestr {{ przedmiot.modul.semestr }} ({{ przedmiot.cykl_dydaktyczny }})</span>
             </div>
         </div>
         <a href="/" class="btn btn-outline-light"><i class="fa-solid fa-arrow-left me-2"></i> Powrót do kokpitu</a>
@@ -227,16 +84,48 @@
 
 <div class="container editor-container mb-5">
 
-    {% if przedmiot.status == 'DO_POPRAWY' %}
-    <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 mb-4 bg-white">
-        <h5 class="alert-heading fw-bold mb-1 text-danger"><i class="fa-solid fa-comment-dots me-2"></i>Sylabus został cofnięty do poprawy!</h5>
-        <hr>
-        <p class="mb-0 fw-bold">Uwagi od Koordynatora Kierunku:</p>
-        <div class="p-3 bg-light rounded mt-2 border text-dark">
-            {{ przedmiot.uwagi_statusu|default:"Brak uwag. Skontaktuj się z kierownikiem."|linebreaksbr }}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white p-3 fw-bold d-flex align-items-center">
+                    <i class="fa-solid fa-comments fs-5 me-2"></i> Konwersacja z Koordynatorami (Obecny status: {{ przedmiot.get_status_display }})
+                </div>
+                <div class="card-body p-0 bg-light">
+                    <div class="d-flex flex-column" style="height: 250px;">
+                        <div class="p-3 flex-grow-1 overflow-auto">
+                            {% for kom in przedmiot.komentarze.all|default:'' %}
+                                <div class="mb-3 {% if kom.autor == request.user %}text-end{% endif %}">
+                                    <div class="small text-muted mb-1">
+                                        {% if kom.autor.is_superuser %}
+                                            <span class="badge bg-dark py-1" style="font-size: 0.6rem;">PRODZIEKAN</span>
+                                        {% elif przedmiot.modul.kierunek.koordynator and kom.autor == przedmiot.modul.kierunek.koordynator.user %}
+                                            <span class="badge bg-info text-dark py-1" style="font-size: 0.6rem;">KOORDYNATOR</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary py-1" style="font-size: 0.6rem;">WYKŁADOWCA</span>
+                                        {% endif %}
+                                        <strong class="text-dark">
+                                            {% if kom.autor.first_name %}{{ kom.autor.first_name }} {{ kom.autor.last_name }}{% else %}{{ kom.autor.username }}{% endif %}
+                                        </strong>
+                                        <span style="font-size: 0.7rem;">({{ kom.data_utworzenia|date:"d.m.Y H:i" }})</span>
+                                    </div>
+                                    <div class="d-inline-block p-2 rounded-3 shadow-sm {% if kom.autor == request.user %}bg-primary text-white{% else %}bg-white border{% endif %}" style="max-width: 85%; text-align: left;">
+                                        {{ kom.tresc|linebreaksbr }}
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="text-center text-muted mt-4 small"><i class="fa-regular fa-comment-dots fs-2 mb-2 opacity-50"></i><br>Brak wiadomości. Tutaj zobaczysz uwagi, jeśli Twój sylabus zostanie cofnięty.</div>
+                            {% endfor %}
+                        </div>
+                        <form method="post" class="p-3 bg-white border-top d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="text" name="tresc_komentarza" class="form-control form-control-sm" placeholder="Odpowiedz koordynatorowi..." required>
+                            <button type="submit" name="dodaj_komentarz" class="btn btn-primary btn-sm px-3 fw-bold"><i class="fa-solid fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    {% endif %}
 
     {% if form.errors %}
     <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 mb-4 bg-white">
@@ -489,7 +378,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // --- SEKCJA CELÓW ---
         const fieldCele = document.getElementById("id_opis_wstepny");
         let celeList = [];
         let metodyDict = { W: '', U: '', K: '' };
@@ -563,7 +451,6 @@
         parseCeleData();
         renderCeleUI();
 
-        // --- SEKCJA HARMONOGRAMU ---
         const fieldHarm = document.getElementById("id_harmonogram_raw");
         const harmContainer = document.getElementById("harmonogram-ui-container");
         let harmGroups = [];
@@ -653,10 +540,7 @@
                 });
 
                 html += `<div class="mt-2 ms-4 pl-2"><button type="button" class="btn btn-sm btn-light border text-primary shadow-sm" onclick="window.addHarmTemat(${i})"><i class="fa-solid fa-plus me-1"></i> Dodaj kolejny temat do tego bloku</button></div>`;
-
-                html += `
-                    </div>
-                </div>`;
+                html += `</div></div>`;
             });
             harmContainer.innerHTML = html;
         }
@@ -664,23 +548,16 @@
         window.addHarmGroup = function() { harmGroups.push({forma: 'laboratorium', efekty: '', tematy: ['']}); saveHarmData(); renderHarmUI(); };
         window.removeHarm = function(i) { harmGroups.splice(i, 1); saveHarmData(); renderHarmUI(); };
         window.updateHarm = function(i, pole, val) { harmGroups[i][pole] = val; saveHarmData(); };
-
-        window.updateHarmTemat = function(gIdx, tIdx, val) {
-            harmGroups[gIdx].tematy[tIdx] = val;
-            saveHarmData();
-        };
-
+        window.updateHarmTemat = function(gIdx, tIdx, val) { harmGroups[gIdx].tematy[tIdx] = val; saveHarmData(); };
         window.removeHarmTemat = function(gIdx, tIdx) {
             harmGroups[gIdx].tematy.splice(tIdx, 1);
             if(harmGroups[gIdx].tematy.length === 0) harmGroups[gIdx].tematy.push('');
-            saveHarmData();
-            renderHarmUI();
+            saveHarmData(); renderHarmUI();
         };
 
         window.addHarmTemat = function(gIdx) {
             harmGroups[gIdx].tematy.push('');
-            saveHarmData();
-            renderHarmUI();
+            saveHarmData(); renderHarmUI();
             setTimeout(() => {
                 const inputs = document.querySelectorAll(`.harm-input-${gIdx}`);
                 if (inputs.length > 0) inputs[inputs.length - 1].focus();
@@ -690,19 +567,14 @@
         window.handleHarmKey = function(e, gIdx, tIdx) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if (tIdx === harmGroups[gIdx].tematy.length - 1) {
-                    window.addHarmTemat(gIdx);
-                } else {
-                    const inputs = document.querySelectorAll(`.harm-input-${gIdx}`);
-                    if (inputs[tIdx + 1]) inputs[tIdx + 1].focus();
-                }
+                if (tIdx === harmGroups[gIdx].tematy.length - 1) { window.addHarmTemat(gIdx); }
+                else { const inputs = document.querySelectorAll(`.harm-input-${gIdx}`); if (inputs[tIdx + 1]) inputs[tIdx + 1].focus(); }
             }
         };
 
         parseHarmData();
         renderHarmUI();
 
-        // --- NOWE: KALKULATOR ECTS ---
         const ects = parseInt('{{ przedmiot.ects|default:"0" }}') || 0;
         const h_wyk = parseInt('{{ przedmiot.godz_wyklad|default:"0" }}') || 0;
         const h_cw = parseInt('{{ przedmiot.godz_cwiczenia|default:"0" }}') || 0;
@@ -710,78 +582,37 @@
         const h_proj = parseInt('{{ przedmiot.godz_projekt|default:"0" }}') || 0;
         const h_sem = parseInt('{{ przedmiot.godz_seminarium|default:"0" }}') || 0;
 
-        const inputCw = document.getElementById('id_pw_przygotowanie_cw');
-        const inputLab = document.getElementById('id_pw_sprawozdania');
-        const inputProj = document.getElementById('id_pw_projekt');
-        const inputWyk = document.getElementById('id_pw_wyklad');
-        const inputEgz = document.getElementById('id_pw_egzamin');
-        const inputLit = document.getElementById('id_pw_literatura');
-
-        const allInputs = [inputCw, inputLab, inputProj, inputWyk, inputEgz, inputLit];
-
-        const uiKontaktowe = document.getElementById('live-kontaktowe');
-        const uiWlasna = document.getElementById('live-wlasna');
-        const uiSuma = document.getElementById('live-suma');
-        const uiWymagane = document.getElementById('live-wymagane');
-
-        const alertEcts = document.getElementById('alert-ects');
-        const alertProporcja = document.getElementById('alert-proporcja');
-        const alertOk = document.getElementById('alert-ok');
+        const allInputs = [
+            document.getElementById('id_pw_przygotowanie_cw'), document.getElementById('id_pw_sprawozdania'),
+            document.getElementById('id_pw_projekt'), document.getElementById('id_pw_wyklad'),
+            document.getElementById('id_pw_egzamin'), document.getElementById('id_pw_literatura')
+        ];
 
         function calculateECTS() {
-            let egzamin_kontakt = (parseInt(inputEgz?.value) || 0) > 0 ? 2 : 0;
+            let egzamin_kontakt = (parseInt(document.getElementById('id_pw_egzamin')?.value) || 0) > 0 ? 2 : 0;
             const sumaKontaktowe = h_wyk + h_cw + h_lab + h_proj + h_sem + egzamin_kontakt;
-
             let sumaWlasna = 0;
-            allInputs.forEach(input => {
-                if (input) sumaWlasna += parseInt(input.value) || 0;
-            });
-
+            allInputs.forEach(input => { if (input) sumaWlasna += parseInt(input.value) || 0; });
             const sumaCalkowita = sumaKontaktowe + sumaWlasna;
             const wymaganeGodziny = ects * 25;
 
-            uiKontaktowe.textContent = sumaKontaktowe + ' h';
-            uiWlasna.textContent = sumaWlasna + ' h';
-            uiSuma.textContent = sumaCalkowita + ' h';
-            uiWymagane.textContent = wymaganeGodziny + ' h (25h/ECTS)';
+            document.getElementById('live-kontaktowe').textContent = sumaKontaktowe + ' h';
+            document.getElementById('live-wlasna').textContent = sumaWlasna + ' h';
+            document.getElementById('live-suma').textContent = sumaCalkowita + ' h';
+            document.getElementById('live-wymagane').textContent = wymaganeGodziny + ' h (25h/ECTS)';
 
-            let isError = false;
-            let showProporcjaWarning = false;
+            let isError = Math.abs(sumaCalkowita - wymaganeGodziny) > 2;
+            document.getElementById('alert-ects').style.display = isError ? 'block' : 'none';
+            document.getElementById('live-suma').className = isError ? "fs-5 text-danger" : "fs-5 text-success";
 
-            if (Math.abs(sumaCalkowita - wymaganeGodziny) > 2) {
-                alertEcts.style.display = 'block';
-                uiSuma.classList.add('text-danger');
-                uiSuma.classList.remove('text-success');
-                isError = true;
-            } else {
-                alertEcts.style.display = 'none';
-                uiSuma.classList.remove('text-danger');
-                uiSuma.classList.add('text-success');
-            }
-
-            if (sumaCalkowita > 0 && (sumaKontaktowe / sumaCalkowita) <= 0.5) {
-                alertProporcja.style.display = 'block';
-                showProporcjaWarning = true;
-            } else {
-                alertProporcja.style.display = 'none';
-            }
-
-            if (!isError && !showProporcjaWarning && sumaCalkowita > 0) {
-                alertOk.style.display = 'block';
-            } else {
-                alertOk.style.display = 'none';
-            }
+            let showProporcjaWarning = sumaCalkowita > 0 && (sumaKontaktowe / sumaCalkowita) <= 0.5;
+            document.getElementById('alert-proporcja').style.display = showProporcjaWarning ? 'block' : 'none';
+            document.getElementById('alert-ok').style.display = (!isError && !showProporcjaWarning && sumaCalkowita > 0) ? 'block' : 'none';
         }
 
-        allInputs.forEach(input => {
-            if (input) {
-                input.addEventListener('input', calculateECTS);
-            }
-        });
-
+        allInputs.forEach(input => { if (input) input.addEventListener('input', calculateECTS); });
         calculateECTS();
     });
 </script>
-
 </body>
 </html>
