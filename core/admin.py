@@ -8,7 +8,6 @@ class TrescZajecInline(admin.TabularInline):
 @admin.register(Przedmiot)
 class PrzedmiotAdmin(admin.ModelAdmin):
     list_display = ("nazwa_pl", "kod_przedmiotu", "ects")
-    # TUTAJ PRZYWRACAMY TWOJE OKIENKA:
     filter_horizontal = ("koordynatorzy", "efekty_kierunkowe")
     inlines = [TrescZajecInline]
 

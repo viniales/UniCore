@@ -187,7 +187,6 @@ def edycja_sylabusa(request, przedmiot_id):
                   {'form': form, 'przedmiot': przedmiot, 'tematy': tematy_zdekodowane})
 
 
-# --- ZMODYFIKOWANA LOGIKA KLONOWANIA ---
 def wykonaj_klonowanie(stary_p, nowy_rok=None, nowy_kierunek_id=None):
     if not nowy_rok:
         try:
@@ -196,7 +195,6 @@ def wykonaj_klonowanie(stary_p, nowy_rok=None, nowy_kierunek_id=None):
         except:
             nowy_rok = stary_p.cykl_dydaktyczny + " (Kopia)"
 
-    # Znajdź lub stwórz odpowiedni moduł dla wybranego (nowego lub tego samego) kierunku
     nowy_modul = stary_p.modul
     if nowy_kierunek_id and str(nowy_modul.kierunek.id) != str(nowy_kierunek_id):
         nowy_kierunek = KierunekStudiow.objects.get(id=nowy_kierunek_id)
@@ -399,8 +397,6 @@ def usun_przedmiot(request, przedmiot_id):
         return HttpResponseForbidden()
 
     przedmiot = get_object_or_404(Przedmiot, id=przedmiot_id)
-    # Usunięcie przedmiotu (dzięki on_delete=models.CASCADE w modelach,
-    # system sam usunie też jego sylabus, tematy zajęć i historię czatu!)
     przedmiot.delete()
 
     return redirect('lista_przedmiotow')

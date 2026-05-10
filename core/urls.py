@@ -11,11 +11,9 @@ urlpatterns = [
     path('pdf/<int:przedmiot_id>/', views.pobierz_pdf, name='pobierz_pdf'),
     path('zarzadzaj-przedmiotem/', views.zarzadzaj_przedmiotem, name='zarzadzaj_przedmiotem_nowy'),
     path('zarzadzaj-przedmiotem/<int:przedmiot_id>/', views.zarzadzaj_przedmiotem, name='zarzadzaj_przedmiotem'),
-    path('usun-przedmiot/<int:przedmiot_id>/', views.usun_przedmiot, name='usun_przedmiot'), # <--- NOWA ŚCIEŻKA
+    path('usun-przedmiot/<int:przedmiot_id>/', views.usun_przedmiot, name='usun_przedmiot'),
     path('dodaj-wykladowce/', views.dodaj_wykladowce, name='dodaj_wykladowce'),
     path('dodaj-kierunek/', views.dodaj_kierunek, name='dodaj_kierunek'),
-
-    # --- NOWE SCIEZKI DO KLONOWANIA ---
     path('klonuj-kierunek/<int:kierunek_id>/', views.klonuj_kierunek, name='klonuj_kierunek'),
     path('klonuj-przedmiot/<int:przedmiot_id>/', views.klonuj_przedmiot_widok, name='klonuj_przedmiot'),
 ]
